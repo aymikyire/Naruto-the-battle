@@ -4,7 +4,7 @@ extends Area2D
 class_name RasenganArea
 
 var damage_per_tick := 1.0
-var duration := 2.0
+var duration := 3.0  # 3秒持续
 var caster
 var _life_time := 0.0
 

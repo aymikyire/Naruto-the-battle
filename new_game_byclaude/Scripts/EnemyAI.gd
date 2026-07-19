@@ -109,6 +109,7 @@ func make_decision():
     if skill_count < 2:
         # 技能不够 → 去打野
         state = State.FARMING
+
         camp_target = find_nearest_camp()
         return
 
@@ -158,6 +159,7 @@ func execute_behavior(delta):
                 move_to(target.global_position)
             else:
                 state = State.FARMING
+
         State.FIGHTING:
             if target and is_instance_valid(target):
                 fight_target()
@@ -171,6 +173,7 @@ func execute_behavior(delta):
                 move_to(my_base.global_position)
                 if global_position.distance_to(my_base.global_position) < 50:
                     state = State.FARMING
+
 
 func move_to(pos: Vector2):
     var dir = (pos - global_position).normalized()
@@ -314,3 +317,15 @@ func respawn():
     visible = true
     modulate = Color(1, 1, 1, 1)
     state = State.FARMING
+
+func heal(amount: float):
+    current_hp = min(current_hp + amount, MAX_HP)
+    _update_health_text()
+    # 回复闪光
+    modulate = Color(0.5, 1, 0.5)
+    await get_tree().create_timer(0.15).timeout
+    if is_instance_valid(self):
+        modulate = Color(1, 1, 1, 1)
+
+func get_team() -> int:
+    return team

@@ -58,9 +58,11 @@ z_index = -9
 
 [node name="BaseA" parent="." instance=ExtResource("4")]
 position = Vector2(80, 750)
+team = 0
 
 [node name="BaseB" parent="." instance=ExtResource("4")]
 position = Vector2(1420, 750)
+team = 1
 
 ; M形野怪营地
 [node name="Camp1" type="Node2D" parent="."]

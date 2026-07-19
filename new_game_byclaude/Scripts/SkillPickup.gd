@@ -36,19 +36,19 @@ func _draw():
 	var float_y := bob
 
 	# 外圈光晕
-	draw_circle(Vector2(0, float_y), 14, Color(1, 0.85, 0.2, 0.15))
+	draw_circle(Vector2(0, float_y), 42, Color(1, 0.85, 0.2, 0.15))
 	# 主圈（金黄）
-	draw_circle(Vector2(0, float_y), 10, Color(1, 0.8, 0.2, 0.8))
+	draw_circle(Vector2(0, float_y), 30, Color(1, 0.8, 0.2, 0.8))
 	# 内圈（亮黄）
-	draw_circle(Vector2(0, float_y), 6, Color(1, 0.9, 0.4, 0.9))
+	draw_circle(Vector2(0, float_y), 18, Color(1, 0.9, 0.4, 0.9))
 	# 核心（白）
-	draw_circle(Vector2(0, float_y), 3, Color(1, 1, 0.8, 1.0))
+	draw_circle(Vector2(0, float_y), 9, Color(1, 1, 0.8, 1.0))
 
-	# 星型标记
-	var icon_size := 4.0
+	# 星型标记（3x放大）
+	var icon_size := 12.0
 	var dirs := [Vector2(0, -1), Vector2(0.7, -0.7), Vector2(1, 0), Vector2(0.7, 0.7), Vector2(0, 1)]
 	for d in dirs:
-		draw_line(Vector2(0, float_y), Vector2(0, float_y) + d * icon_size, Color(1, 1, 1, 0.6), 1.5)
+		draw_line(Vector2(0, float_y), Vector2(0, float_y) + d * icon_size, Color(1, 1, 1, 0.6), 3.0)
 
 func _on_body_entered(body):
 	if body.has_method("pickup_skill"):

@@ -201,8 +201,20 @@ func take_damage(amount: float):
 		die()
 
 func knockback(vector: Vector2):
-	velocity = vector
-	# 一帧后恢复（由move_and_slide处理减速）
+	# 直接位置位移（velocity会被_physics_process覆盖）
+	global_position += vector.normalized() * 30.0
+
+func heal(amount: float):
+	current_hp = min(current_hp + amount, MAX_HP)
+	_update_health_text()
+	# 回复闪光
+	modulate = Color(0.5, 1, 0.5)
+	await get_tree().create_timer(0.15).timeout
+	if is_instance_valid(self):
+		modulate = Color(1, 1, 1, 1)
+
+func get_team() -> int:
+	return team
 
 func die():
 	# 掉落随机一个技能
