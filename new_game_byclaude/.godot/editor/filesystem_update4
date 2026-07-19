@@ -13,3 +13,6 @@ res://Scripts/RasenganArea.gd
 res://Scripts/ShadowClone.gd
 res://Scripts/SkillPickup.gd
 res://Scripts/SimpleCharacter.gd
+res://Scenes/EnemyAI.tscn
+res://Scenes/Player.tscn
+res://Scripts/Base.gd

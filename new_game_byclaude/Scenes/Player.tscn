@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://player"]
+[gd_scene load_steps=7 format=3 uid="uid://player"]
 
 [ext_resource type="Script" path="res://Scripts/Player.gd" id="1"]
 [ext_resource type="Script" path="res://Scripts/SkillManager.gd" id="2"]
 [ext_resource type="Script" path="res://Scripts/SimpleCharacter.gd" id="3"]
+[ext_resource type="Texture2D" path="res://Assets/player_sasuke.png" id="4"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 15
@@ -20,17 +21,17 @@ script = ExtResource("1")
 shape = SubResource("CapsuleShape2D_1")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(1, 1)
-texture = null ; AI生成后替换
+scale = Vector2(0.04, 0.04)
+texture = ExtResource("4")
+centered = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
-[node name="HealthBar" type="ProgressBar" parent="."]
-position = Vector2(-20, -30)
-size = Vector2(40, 5)
-max_value = 5
-value = 5
-show_percentage = false
+[node name="HealthBar" type="Label" parent="."]
+position = Vector2(-25, -32)
+size = Vector2(50, 14)
+text = "5/5"
+horizontal_alignment = 1
 
 [node name="AttackArea" type="Area2D" parent="."]
 position = Vector2(30, 0)

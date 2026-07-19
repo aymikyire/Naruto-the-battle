@@ -25,14 +25,17 @@ var home_position: Vector2
 func _ready():
     current_hp = MAX_HP
     home_position = global_position
-    health_bar.max_value = MAX_HP
-    health_bar.value = MAX_HP
+    _update_health_text()
+    health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
     if is_boss:
         sprite.scale = Vector2(1.5, 1.5)
         attack_damage = 1.0  # Boss伤害翻倍
     # 配置角色视觉
     if character_visual:
         character_visual.type = SimpleCharacter.Type.MONSTER
+
+func _update_health_text():
+    health_bar.text = str(current_hp) + "/" + str(MAX_HP)
 
 func _physics_process(delta):
     attack_timer -= delta
@@ -89,7 +92,7 @@ func return_to_home(delta):
 
 func take_damage(amount: float):
     current_hp -= amount
-    health_bar.value = current_hp
+    _update_health_text()
     # 受击反馈
     modulate = Color(1, 0.5, 0.5)
     await get_tree().create_timer(0.1).timeout

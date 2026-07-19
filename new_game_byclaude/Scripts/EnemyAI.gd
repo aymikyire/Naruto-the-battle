@@ -11,8 +11,10 @@ const MAX_HP := 5
 const SPEED := 100.0
 const MAP_WIDTH := 1500
 const MAP_HEIGHT := 1500
+const SPRITE_SCALE := 0.04
 
 var current_hp := MAX_HP
+var _bob_time := 0.0
 var team := TEAM_SENJU
 var target: Node2D = null  # 当前目标
 var camp_target = null  # 目标野怪营地
@@ -43,12 +45,17 @@ var attack_speed := 1.0  # 攻击间隔秒
 func _ready():
     add_to_group("players")
     current_hp = MAX_HP
-    health_bar.max_value = MAX_HP
-    health_bar.value = MAX_HP
-    # 配置角色视觉
+    _update_health_text()
+    health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
+    # 设置贴图缩放
+    sprite.scale = Vector2(-SPRITE_SCALE, SPRITE_SCALE)
+    sprite.position = Vector2.ZERO
+    # 隐藏_draw角色视觉（贴图已替代）
     if character_visual:
-        character_visual.type = SimpleCharacter.Type.ENEMY
-        character_visual.facing_dir = Vector2.LEFT
+        character_visual.visible = false
+
+func _update_health_text():
+    health_bar.text = str(current_hp) + "/" + str(MAX_HP)
 
 func _process(delta):
     # CD更新
@@ -60,10 +67,13 @@ func _process(delta):
     if attack_timer > 0:
         attack_timer -= delta
 
-    # 更新角色视觉
-    if character_visual:
-        character_visual.is_moving = (velocity.length() > 0)
-        character_visual.facing_dir = Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
+    # 行走浮动动画
+    if velocity.length() > 0:
+        _bob_time += delta * 8.0
+        sprite.position.y = sin(_bob_time) * 2.0
+    else:
+        _bob_time = 0.0
+        sprite.position.y = 0.0
 
 func _physics_process(delta):
     ai_timer -= delta
@@ -167,7 +177,7 @@ func move_to(pos: Vector2):
     velocity = dir * SPEED
     # 面向
     if abs(dir.x) > 0.1:
-        sprite.scale.x = sign(dir.x)
+        sprite.scale.x = sign(dir.x) * SPRITE_SCALE
 
 func fight_target():
     if not target or not is_instance_valid(target):
@@ -194,9 +204,11 @@ func auto_attack():
         return
     attack_timer = attack_speed
 
-    # 攻击视觉特效
-    if character_visual:
-        character_visual.trigger_attack()
+    # 攻击视觉特效（横向拉伸脉冲）
+    var dir_sign = sign(sprite.scale.x)
+    sprite.scale = Vector2(dir_sign * SPRITE_SCALE * 1.3, SPRITE_SCALE * 0.8)
+    var tw = create_tween()
+    tw.tween_property(sprite, "scale", Vector2(dir_sign * SPRITE_SCALE, SPRITE_SCALE), 0.12)
 
     attack_combo_counter += 1
     if is_senju:
@@ -267,7 +279,7 @@ func pickup_skill(skill_data):
 
 func take_damage(amount: float):
     current_hp -= amount
-    health_bar.value = current_hp
+    _update_health_text()
     modulate = Color(1, 0.3, 0.3)
     await get_tree().create_timer(0.1).timeout
     if is_instance_valid(self):
@@ -294,7 +306,7 @@ func die():
         skill_slots[drop_idx] = null
 
     current_hp = MAX_HP
-    health_bar.value = MAX_HP
+    _update_health_text()
     respawn()
 
 func respawn():

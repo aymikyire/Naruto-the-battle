@@ -6,6 +6,8 @@ const MAX_HP := 5
 const SPEED := 100.0  # 1单位/秒 (100px/s)
 const MAP_WIDTH := 1500  # 地图总宽
 const MAP_HEIGHT := 1500  # 地图总高
+const SPRITE_SCALE := 0.04  # 贴图缩放到适合游戏尺寸
+var _bob_time := 0.0  # 行走浮动计时
 
 # 普攻系统
 enum AttackState { IDLE, ATTACK1, ATTACK2, ATTACK3, DASH }
@@ -45,14 +47,21 @@ func _ready():
 	add_to_group("players")
 	add_to_group("human_player")
 	current_hp = MAX_HP
-	health_bar.max_value = MAX_HP
-	health_bar.value = MAX_HP
-	# 配置角色视觉
+	_update_health_text()
+	# 设置血条文字颜色
+	health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
+	# 设置贴图缩放
+	sprite.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
+	sprite.position = Vector2.ZERO
+	# 隐藏_draw角色视觉（贴图已替代）
 	if character_visual:
-		character_visual.type = SimpleCharacter.Type.PLAYER
-		character_visual.facing_dir = Vector2.RIGHT
+		character_visual.visible = false
+
 	# 延迟一帧，等UI场景准备好后再找技能槽
 	call_deferred("_init_skill_ui")
+
+func _update_health_text():
+	health_bar.text = str(current_hp) + "/" + str(MAX_HP)
 
 func _init_skill_ui():
 	skill_ui = get_tree().get_first_node_in_group("skill_ui")
@@ -73,10 +82,13 @@ func _process(delta):
 			if skill_cooldowns[i] < 0:
 				skill_cooldowns[i] = 0
 
-	# 更新角色视觉动画
-	if character_visual:
-		character_visual.is_moving = (velocity.length() > 0)
-		character_visual.facing_dir = Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
+	# 行走浮动动画
+	if velocity.length() > 0:
+		_bob_time += delta * 8.0
+		sprite.position.y = sin(_bob_time) * 2.0
+	else:
+		_bob_time = 0.0
+		sprite.position.y = 0.0
 
 func _physics_process(delta):
 	if is_dashing:
@@ -94,7 +106,7 @@ func _physics_process(delta):
 		velocity = move_direction.normalized() * SPEED
 		# 面向方向
 		if move_direction.x != 0:
-			sprite.scale.x = sign(move_direction.x)
+			sprite.scale.x = sign(move_direction.x) * SPRITE_SCALE
 	else:
 		velocity = Vector2.ZERO
 
@@ -144,6 +156,11 @@ func do_dash():
 	attack_state = AttackState.DASH
 	is_dashing = true
 	dash_direction = Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
+	# 冲刺攻击特效
+	sprite.scale = Vector2(SPRITE_SCALE * 1.3, SPRITE_SCALE * 1.3)
+	await get_tree().create_timer(0.1).timeout
+	if is_instance_valid(self):
+		sprite.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
 
 	# 冲刺无敌帧
 	set_collision_layer_value(1, false)  # 临时无敌
@@ -157,6 +174,10 @@ func do_dash():
 
 func deal_damage_in_front(damage: float):
 	var dir := Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
+	# 攻击缩放脉冲
+	sprite.scale = Vector2(SPRITE_SCALE * 1.15, SPRITE_SCALE * 0.85)
+	var tw = create_tween()
+	tw.tween_property(sprite, "scale", Vector2(SPRITE_SCALE, SPRITE_SCALE), 0.15)
 	var space_state := get_world_2d().direct_space_state
 	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * 60)
 	query.exclude = [self]
@@ -167,7 +188,7 @@ func deal_damage_in_front(damage: float):
 
 func take_damage(amount: float):
 	current_hp -= amount
-	health_bar.value = current_hp
+	_update_health_text()
 	# 闪红效果
 	modulate = Color(1, 0.3, 0.3)
 	await get_tree().create_timer(0.1).timeout
@@ -196,7 +217,7 @@ func die():
 		skill_slots[i] = null
 
 	current_hp = MAX_HP
-	health_bar.value = MAX_HP
+	_update_health_text()
 	# 回到基地
 	respawn()
 

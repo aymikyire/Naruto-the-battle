@@ -10,13 +10,16 @@ var current_hp := max_hp
 @onready var label := $Label
 
 func _ready():
-    health_bar.max_value = max_hp
-    health_bar.value = max_hp
+    _update_health_text()
+    health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
     label.text = name
+
+func _update_health_text():
+    health_bar.text = str(current_hp) + "/" + str(max_hp)
 
 func take_damage(amount: float):
     current_hp -= amount
-    health_bar.value = current_hp
+    _update_health_text()
 
     # 闪烁
     modulate = Color(1, 0.5, 0.5)

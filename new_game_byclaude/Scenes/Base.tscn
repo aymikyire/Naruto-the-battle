@@ -17,12 +17,11 @@ shape = SubResource("RectangleShape2D_1")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(1, 1)
 
-[node name="HealthBar" type="ProgressBar" parent="."]
-position = Vector2(-30, -40)
-size = Vector2(60, 8)
-max_value = 10
-value = 10
-show_percentage = false
+[node name="HealthBar" type="Label" parent="."]
+position = Vector2(-40, -42)
+size = Vector2(80, 14)
+text = "10/10"
+horizontal_alignment = 1
 
 [node name="Label" type="Label" parent="."]
 position = Vector2(-30, -55)
