@@ -16,3 +16,4 @@ res://Scripts/SimpleCharacter.gd
 res://Scenes/EnemyAI.tscn
 res://Scenes/Player.tscn
 res://Scripts/Base.gd
+res://Scripts/MonsterCamp.gd

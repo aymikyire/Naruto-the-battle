@@ -8,7 +8,7 @@ const TEAM_UCHIHA := 0
 const TEAM_SENJU := 1
 
 const MAX_HP := 5
-const SPEED := 100.0
+const SPEED := 90.0  # 初始移速为玩家的0.9倍
 const MAP_WIDTH := 1500
 const MAP_HEIGHT := 1500
 const SPRITE_SCALE := 0.04
@@ -211,30 +211,26 @@ func auto_attack():
     tw.tween_property(sprite, "scale", Vector2(dir_sign * SPRITE_SCALE, SPRITE_SCALE), 0.12)
 
     attack_combo_counter += 1
+
+    # 统一普攻：每次 0.5 伤害（与玩家一致）
+    if target and is_instance_valid(target):
+        target.take_damage(0.5)
+
     if is_senju:
-        # 千手一族：第三次攻击击飞
+        # 千手一族：第3次攻击击退（无减速）
         if attack_combo_counter >= 3:
             attack_combo_counter = 0
-            # 击飞
             if target and is_instance_valid(target):
-                target.take_damage(1.0)
+                var dir = (target.global_position - global_position).normalized()
                 if target.has_method("knockback"):
-                    var dir = (target.global_position - global_position).normalized()
-                    target.knockback(dir * 150)
-        else:
-            if target and is_instance_valid(target):
-                target.take_damage(1.0)
+                    target.knockback(dir * 100)
     else:
-        # 宇智波一族：第四次位移
+        # 宇智波一族：第3次无特效，第4次位移突进
         if attack_combo_counter >= 4:
             attack_combo_counter = 0
-            # 简单位移突进
             if target and is_instance_valid(target):
                 var dir = (target.global_position - global_position).normalized()
                 global_position += dir * 100
-        else:
-            if target and is_instance_valid(target):
-                target.take_damage(0.5)
 
 func auto_attack_monsters():
     var monsters = get_tree().get_nodes_in_group("monsters")

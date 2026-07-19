@@ -241,7 +241,7 @@ new_game_byclaude/
 - [x] 虚拟摇杆（触屏+键盘）
 - [x] 攻击按钮
 - [x] 3个技能按钮+Cd显示
-- [x] 血条显示（玩家/AI/野怪/基地）
+- [x] 血条显示（玩家/AI/野怪/基地，数字 a/b 文本形式）
 - [x] 游戏结束面板
 - [x] 顶部信息栏
 
@@ -253,6 +253,11 @@ new_game_byclaude/
 - [x] PhysicsRayQueryParameters2D API 错误修复
 - [x] 螺旋丸双重计时冲突修复
 - [x] 怪物营地注册到组（AI可以搜索到）
+- [x] 怪物死亡掉落位置修正（营地中心→怪物死亡位置）
+- [x] 人物贴图左右翻转修复（攻击/冲刺后朝向丢失 bug）
+- [x] 玩家普攻射线距离增加（60→80像素，提高命中率）
+- [x] AI攻击重做：伤害统一0.5，千手第3下击退（无减速），宇智波第3下无特效→第4下位移突进
+- [x] AI初始移速统一为玩家的0.9倍（SPEED=90）
 - [x] 各对象增加 is_instance_valid 安全检测
 - [x] 所有 .gd 文件 TAB制表符 → 4空格缩进（兼容Windows解析）
 - [x] Main.tscn load_steps 12→7, GameUI.tscn load_steps 6→5（与实际资源数匹配）
@@ -270,6 +275,7 @@ new_game_byclaude/
 - [x] 行走浮动动画（Sprite2D的y轴sin振荡替代_draw()的walk bob）
 - [x] 优化角色贴图透明（chroma-key去背景改用边界洪水填充算法，边角完全透明）
 - [x] 所有血条改为红色细条（StyleBoxFlat主题覆盖，红色填充+半透明暗红背景）
+- [x] 血条改为数字文本形式（ProgressBar → Label，显示 "current_hp / MAX_HP"）
 
 ### 🔄 进行中
 - [ ] Godot引擎导入验证（等待用户测试运行）

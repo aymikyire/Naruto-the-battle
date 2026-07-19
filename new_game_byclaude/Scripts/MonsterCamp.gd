@@ -60,9 +60,9 @@ func has_alive_monsters() -> bool:
             return true
     return false
 
-func on_monster_died(_monster):
-    _monsters.erase(_monster)
-    drop_skill()
+func on_monster_died(monster):
+    _monsters.erase(monster)
+    drop_skill(monster.global_position)
 
     # 启动刷新计时
     if _timer == null:
@@ -72,13 +72,13 @@ func on_monster_died(_monster):
         add_child(_timer)
     _timer.start(respawn_timer)
 
-func drop_skill():
+func drop_skill(pos: Vector2):
     # 随机掉落一个技能
     var skill_data = available_skills[randi() % available_skills.size()].duplicate()
 
     var pickup = preload("res://Scenes/SkillPickup.tscn").instantiate()
     pickup.skill_data = skill_data
-    pickup.global_position = global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+    pickup.global_position = pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
     get_parent().add_child(pickup)
 
     # Boss掉落两个
@@ -86,5 +86,5 @@ func drop_skill():
         var skill_data2 = available_skills[randi() % available_skills.size()].duplicate()
         var pickup2 = preload("res://Scenes/SkillPickup.tscn").instantiate()
         pickup2.skill_data = skill_data2
-        pickup2.global_position = global_position + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+        pickup2.global_position = pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
         get_parent().add_child(pickup2)

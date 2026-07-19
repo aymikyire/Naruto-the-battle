@@ -16,6 +16,7 @@ var attack_timer := 0.0
 var attack_combo_window := 0.6  # 连击窗口
 var current_hp := MAX_HP
 var is_dashing := false
+var _facing := 1.0  # 人物朝向：1=右，-1=左
 var dash_direction := Vector2.RIGHT
 const DASH_DISTANCE := 150.0  # 位移距离
 const DASH_SPEED := 400.0
@@ -104,9 +105,10 @@ func _physics_process(delta):
 	# 移动
 	if move_direction != Vector2.ZERO:
 		velocity = move_direction.normalized() * SPEED
-		# 面向方向
+		# 面向方向（贴图左右翻转）
 		if move_direction.x != 0:
-			sprite.scale.x = sign(move_direction.x) * SPRITE_SCALE
+			_facing = sign(move_direction.x)
+			sprite.scale.x = _facing * SPRITE_SCALE
 	else:
 		velocity = Vector2.ZERO
 
@@ -155,12 +157,12 @@ func do_attack_3():
 func do_dash():
 	attack_state = AttackState.DASH
 	is_dashing = true
-	dash_direction = Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
-	# 冲刺攻击特效
-	sprite.scale = Vector2(SPRITE_SCALE * 1.3, SPRITE_SCALE * 1.3)
+	dash_direction = Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
+	# 冲刺攻击特效（保持朝向）
+	sprite.scale = Vector2(_facing * SPRITE_SCALE * 1.3, SPRITE_SCALE * 1.3)
 	await get_tree().create_timer(0.1).timeout
 	if is_instance_valid(self):
-		sprite.scale = Vector2(SPRITE_SCALE, SPRITE_SCALE)
+		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
 
 	# 冲刺无敌帧
 	set_collision_layer_value(1, false)  # 临时无敌
@@ -173,13 +175,13 @@ func do_dash():
 	attack_state = AttackState.IDLE
 
 func deal_damage_in_front(damage: float):
-	var dir := Vector2.RIGHT if sprite.scale.x >= 0 else Vector2.LEFT
-	# 攻击缩放脉冲
-	sprite.scale = Vector2(SPRITE_SCALE * 1.15, SPRITE_SCALE * 0.85)
+	var dir := Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
+	# 攻击缩放脉冲（保持朝向）
+	sprite.scale = Vector2(_facing * SPRITE_SCALE * 1.15, SPRITE_SCALE * 0.85)
 	var tw = create_tween()
-	tw.tween_property(sprite, "scale", Vector2(SPRITE_SCALE, SPRITE_SCALE), 0.15)
+	tw.tween_property(sprite, "scale", Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE), 0.15)
 	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * 60)
+	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + dir * 80)
 	query.exclude = [self]
 	var result := space_state.intersect_ray(query)
 
