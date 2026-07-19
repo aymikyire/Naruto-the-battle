@@ -11,6 +11,7 @@ var _lifetime := 0.0
 func _ready():
 	add_to_group("shadow_clones")
 	modulate = Color(1, 1, 1, 0.7)
+	scale = Vector2(3, 3)
 
 func _process(delta):
 	_lifetime += delta
@@ -22,7 +23,7 @@ func _process(delta):
 	if caster.has_node("Sprite2D"):
 		facing = sign(caster.get_node("Sprite2D").scale.x)
 	# 朝向右侧时，后面是左边（-X）；朝向左时后面是右边（+X）
-	var offset := Vector2(-25 * facing, 0)
+	var offset := Vector2(-40 * facing, 0)
 	global_position = caster.global_position + offset
 	queue_redraw()
 

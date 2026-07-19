@@ -28,17 +28,17 @@ func _process(delta):
 		queue_free()
 
 func _draw():
-	# 外圈火焰（橙色）
-	var outer_radius := 6.0 + sin(_pulse_time * 10.0) * 1.0
+	# 外圈火焰（橙色）— 3x放大
+	var outer_radius := 18.0 + sin(_pulse_time * 10.0) * 3.0
 	draw_circle(Vector2.ZERO, outer_radius, Color(1, 0.5, 0, 0.6))
 	# 内核（黄色）
-	draw_circle(Vector2.ZERO, 4.0, Color(1, 0.8, 0.2, 0.9))
+	draw_circle(Vector2.ZERO, 12.0, Color(1, 0.8, 0.2, 0.9))
 	# 核心（白色）
-	draw_circle(Vector2.ZERO, 2.0, Color(1, 1, 0.8, 1.0))
+	draw_circle(Vector2.ZERO, 6.0, Color(1, 1, 0.8, 1.0))
 	# 尾迹
 	var trail_dir = -direction.normalized()
-	draw_circle(trail_dir * 3, 3.0, Color(1, 0.5, 0, 0.3))
-	draw_circle(trail_dir * 6, 2.0, Color(1, 0.3, 0, 0.15))
+	draw_circle(trail_dir * 9, 9.0, Color(1, 0.5, 0, 0.3))
+	draw_circle(trail_dir * 18, 6.0, Color(1, 0.3, 0, 0.15))
 
 func _on_body_entered(body):
 	if body == caster:

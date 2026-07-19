@@ -17,8 +17,8 @@ func fire_fireball(caster, skill_data):
 	# 距离越近击退越远
 	# 伤害2格，CD 5s
 	var dir := Vector2.RIGHT if caster.sprite.scale.x >= 0 else Vector2.LEFT
-	var base_pos: Vector2 = caster.global_position + dir * 30
-	var spread := 15.0  # 扩散角度偏移
+	var base_pos: Vector2 = caster.global_position + dir * 60  # 发射起点前移（3x）
+	var spread := 45.0  # 扩散角度偏移（3x）
 
 	# 检测影分身双倍效果
 	var has_clone_buff: bool = caster.has_meta("has_clones") and caster.get_meta("has_clones")
