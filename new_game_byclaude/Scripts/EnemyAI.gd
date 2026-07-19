@@ -30,7 +30,7 @@ const CAMP_POSITIONS := [
     Vector2(400, 400),
     Vector2(750, 300),
     Vector2(1100, 400),
-    Vector2(1300, 580),
+    Vector2(1150, 580),
 ]
 
 # AI状态机
@@ -42,6 +42,7 @@ var skill_slots := [null, null, null]
 var skill_cooldowns := [0.0, 0.0, 0.0]
 var attack_combo_counter := 0
 var attack_timer := 0.0
+var _skill_use_timer := 0.0  # 技能施放冷却，防止一帧放多个
 
 # 阵营专属
 var is_senju := true  # AI默认千手一族
@@ -140,6 +141,10 @@ func _process(delta):
     for i in range(skill_cooldowns.size()):
         if skill_cooldowns[i] > 0:
             skill_cooldowns[i] -= delta
+
+    # 技能施放冷却
+    if _skill_use_timer > 0:
+        _skill_use_timer -= delta
 
     # 连击计时
     if attack_timer > 0:
@@ -427,10 +432,8 @@ func execute_behavior(delta):
                     target = base
                     auto_attack()
                     target = old_target
-                    # 使用技能攻击基地
-                    for i in range(skill_slots.size()):
-                        if skill_slots[i] != null and skill_cooldowns[i] <= 0:
-                            use_skill(i, null)
+                    # 使用一个随机技能攻击基地（每帧最多1个）
+                    _use_random_skill()
             else:
                 state = State.FARMING
                 find_farming_target()
@@ -470,10 +473,8 @@ func fight_target():
         velocity = Vector2.ZERO
         auto_attack()
 
-    # 使用技能攻击玩家
-    for i in range(skill_slots.size()):
-        if skill_slots[i] != null and skill_cooldowns[i] <= 0:
-            use_skill(i, null)
+    # 使用一个随机技能攻击玩家（每帧最多1个）
+    _use_random_skill()
 
 func auto_attack():
     if attack_timer > 0:
@@ -590,8 +591,25 @@ func die():
     _update_health_text()
     respawn()
 
+func _use_random_skill():
+    if _skill_use_timer > 0:
+        return  # 技能施放冷却中
+    var ready := []
+    for i in range(skill_slots.size()):
+        if skill_slots[i] != null and skill_cooldowns[i] <= 0:
+            ready.append(i)
+    if ready.size() > 0:
+        _skill_use_timer = 1.5  # 每次施放后冷却1.5秒
+        use_skill(ready[randi() % ready.size()], null)
+
 func respawn():
-    var spawn_pos = Vector2(MAP_WIDTH-100, MAP_HEIGHT/2)
+    # 在己方基地复活
+    var bases = get_tree().get_nodes_in_group("bases")
+    var spawn_pos = Vector2(MAP_WIDTH-100, MAP_HEIGHT/2)  # 默认
+    for b in bases:
+        if is_instance_valid(b) and b.team == team:
+            spawn_pos = b.global_position + Vector2(-60, 0)  # 基地旁边
+            break
     global_position = spawn_pos
     velocity = Vector2.ZERO
     visible = false

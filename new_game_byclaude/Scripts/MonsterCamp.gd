@@ -48,7 +48,11 @@ func _ready():
 func spawn_monsters():
     for i in range(spawn_count):
         var monster = monster_scene.instantiate()
-        monster.global_position = global_position + Vector2(randf_range(-60, 60), randf_range(-60, 60))
+        var spawn_pos = global_position + Vector2(randf_range(-60, 60), randf_range(-60, 60))
+        # 限制在地图范围内（地图1500x1500，边界留60px安全区）
+        spawn_pos.x = clamp(spawn_pos.x, 60, 1440)
+        spawn_pos.y = clamp(spawn_pos.y, 60, 1440)
+        monster.global_position = spawn_pos
         monster.is_boss = is_boss_camp
         monster.home_position = monster.global_position
         add_child(monster)

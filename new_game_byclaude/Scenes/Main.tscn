@@ -83,7 +83,7 @@ position = Vector2(1100, 400)
 script = ExtResource("6")
 
 [node name="Camp5" type="Node2D" parent="."]
-position = Vector2(1300, 580)
+position = Vector2(1150, 580)
 script = ExtResource("6")
 
 [node name="Player" parent="." instance=ExtResource("2")]
