@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3 uid="uid://monster"]
+
+[ext_resource type="Script" path="res://Scripts/Monster.gd" id="1"]
+[ext_resource type="Script" path="res://Scripts/SimpleCharacter.gd" id="2"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 14
+height = 28
+
+[node name="Monster" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1")
+groups = ["monsters"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1, 1)
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+position = Vector2(-15, -25)
+size = Vector2(30, 4)
+max_value = 6
+value = 6
+show_percentage = false
+
+; 角色视觉（_draw绘制）
+[node name="CharacterVisual" type="Node2D" parent="."]
+script = ExtResource("2")
+
+; 占位绿色方块（旧）
+[node name="Placeholder" type="ColorRect" parent="."]
+visible = false
+color = Color(0.3, 1, 0.3, 1)
+position = Vector2(-10, -10)
+size = Vector2(20, 20)
+z_index = 1

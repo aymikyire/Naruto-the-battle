@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://monstercamp"]
+
+[ext_resource type="Script" path="res://Scripts/MonsterCamp.gd" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/Monster.tscn" id="2"]
+
+[node name="MonsterCamp" type="Node2D"]
+script = ExtResource("1")
+groups = ["monster_camps"]
+
+[node name="CampArea" type="ColorRect"]
+color = Color(0.6, 0.4, 0.2, 0.3)
+position = Vector2(-60, -60)
+size = Vector2(120, 120)
+z_index = -5

@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://base"]
+
+[ext_resource type="Script" path="res://Scripts/Base.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(80, 80)
+
+[node name="Base" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1")
+groups = ["bases"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1, 1)
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+position = Vector2(-30, -40)
+size = Vector2(60, 8)
+max_value = 10
+value = 10
+show_percentage = false
+
+[node name="Label" type="Label" parent="."]
+position = Vector2(-30, -55)
+text = "基地"

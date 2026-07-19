@@ -1,0 +1,77 @@
+[gd_scene load_steps=6 format=3 uid="uid://gameui"]
+
+[ext_resource type="Script" path="res://Scripts/VirtualJoystick.gd" id="1"]
+[ext_resource type="Script" path="res://Scripts/AttackButton.gd" id="2"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/GameOverPanel.tscn" id="3"]
+[ext_resource type="Script" path="res://Scripts/SkillSlotUI.gd" id="4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(80, 80)
+
+[node name="GameUI" type="CanvasLayer"]
+layer = 10
+
+; 摇杆容器（左下角）
+[node name="JoystickContainer" type="Control" parent="."]
+position = Vector2(40, 700)
+size = Vector2(200, 200)
+script = ExtResource("1")
+
+[node name="OuterCircle" type="ColorRect" parent="JoystickContainer"]
+color = Color(1, 1, 1, 0.2)
+position = Vector2(20, 20)
+size = Vector2(160, 160)
+
+[node name="Knob" type="ColorRect" parent="JoystickContainer"]
+color = Color(1, 1, 1, 0.5)
+position = Vector2(80, 80)
+size = Vector2(40, 40)
+
+; 攻击按钮（右下角）
+[node name="AttackButton" type="TouchScreenButton" parent="."]
+position = Vector2(1700, 780)
+size = Vector2(80, 80)
+shape = SubResource("RectangleShape2D_1")
+script = ExtResource("2")
+
+[node name="AttackLabel" type="Label" parent="AttackButton"]
+position = Vector2(18, 20)
+text = "攻"
+size = Vector2(50, 40)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
+; 技能槽UI（右下角，攻击按钮上方）
+[node name="SkillSlotUI" type="Control" parent="."]
+position = Vector2(1550, 600)
+size = Vector2(280, 100)
+script = ExtResource("4")
+
+; 游戏结束面板（初始隐藏）
+[node name="GameOverPanel" parent="." instance=ExtResource("3")]
+visible = false
+
+; 顶部信息
+[node name="TopBar" type="Control" parent="."]
+position = Vector2(0, 0)
+size = Vector2(1920, 60)
+
+[node name="PlayerName" type="Label" parent="TopBar"]
+position = Vector2(20, 10)
+text = "宇智波 (你)"
+size = Vector2(200, 40)
+theme_override_font_sizes/font_size = 20
+
+[node name="VS" type="Label" parent="TopBar"]
+position = Vector2(860, 10)
+text = "VS"
+size = Vector2(200, 40)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
+[node name="EnemyName" type="Label" parent="TopBar"]
+position = Vector2(1700, 10)
+text = "千手 (AI)"
+size = Vector2(200, 40)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 2

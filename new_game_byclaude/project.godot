@@ -1,0 +1,32 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
+[application]
+
+config/name="技能拾取MOBA"
+config/description="忍者技能拾取对战游戏"
+run/main_scene="res://Scenes/Main.tscn"
+config/features=PackedStringArray("4.7")
+config/icon="res://Assets/icon.png"
+display/window/size/viewport_width=1920
+display/window/size/viewport_height=1080
+display/window/size/mode=2
+display/window/size/always_on_top=false
+rendering/renderer/rendering_method="mobile"
+rendering/textures/canvas_textures/default_texture_filter=0
+
+[input]
+
+devices/pointing/emulate_touch_from_mouse=true
+application/config/use_custom_icon=false

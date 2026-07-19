@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://gameover"]
+
+[node name="GameOverPanel" type="ColorRect"]
+color = Color(0, 0, 0, 0.7)
+position = Vector2(0, 0)
+size = Vector2(1920, 1080)
+mouse_filter = 1
+
+[node name="Label" type="Label" parent="."]
+position = Vector2(710, 440)
+text = "游戏结束"
+size = Vector2(500, 100)
+theme_override_font_sizes/font_size = 48
+
+[node name="SubLabel" type="Label" parent="."]
+position = Vector2(760, 520)
+text = "3秒后重新开始..."
+size = Vector2(400, 40)
+theme_override_font_sizes/font_size = 24

@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3 uid="uid://enemyai"]
+
+[ext_resource type="Script" path="res://Scripts/EnemyAI.gd" id="1"]
+[ext_resource type="Script" path="res://Scripts/SkillManager.gd" id="2"]
+[ext_resource type="Script" path="res://Scripts/SimpleCharacter.gd" id="3"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 15
+height = 30
+
+[node name="EnemyAI" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1, 1)
+texture = null
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+position = Vector2(-20, -30)
+size = Vector2(40, 5)
+max_value = 5
+value = 5
+show_percentage = false
+
+[node name="SkillManager" type="Node" parent="."]
+script = ExtResource("2")
+
+; 角色视觉（_draw绘制）
+[node name="CharacterVisual" type="Node2D" parent="."]
+script = ExtResource("3")
+
+; 占位蓝色方块（旧）
+[node name="Placeholder" type="ColorRect" parent="."]
+visible = false
+color = Color(0.3, 0.3, 1, 1)
+position = Vector2(-12, -12)
+size = Vector2(24, 24)
+z_index = 1
