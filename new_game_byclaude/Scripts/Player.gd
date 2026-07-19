@@ -2,7 +2,7 @@ extends CharacterBody2D
 class_name Player
 
 # 玩家基础属性
-const MAX_HP := 10
+var max_hp := 10.0
 const SPEED := 100.0  # 1单位/秒 (100px/s)
 const MAP_WIDTH := 1500  # 地图总宽
 const MAP_HEIGHT := 1500  # 地图总高
@@ -14,7 +14,7 @@ enum AttackState { IDLE, ATTACK1, ATTACK2, ATTACK3, DASH }
 var attack_state := AttackState.IDLE
 var attack_timer := 0.0
 var attack_combo_window := 0.6  # 连击窗口
-var current_hp := MAX_HP
+var current_hp := max_hp
 var is_dashing := false
 var _facing := 1.0  # 人物朝向：1=右，-1=左
 var dash_direction := Vector2.RIGHT
@@ -53,7 +53,7 @@ var skill_ui: SkillSlotUI = null
 func _ready():
 	add_to_group("players")
 	add_to_group("human_player")
-	current_hp = MAX_HP
+	current_hp = max_hp
 	_update_health_text()
 	# 设置血条文字颜色
 	health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
@@ -77,7 +77,7 @@ func _ready():
 	queue_redraw()
 
 func _update_health_text():
-	health_bar.text = str(current_hp) + "/" + str(MAX_HP)
+	health_bar.text = str(current_hp) + "/" + str(max_hp)
 
 func _draw():
 	# 在血条上方绘制金黄色密卷标记点
@@ -254,7 +254,7 @@ func deal_damage_in_front(damage: float, apply_knockback: bool = false):
 		if apply_knockback and result.collider.has_method("knockback"):
 			result.collider.knockback(dir * 100)
 
-func take_damage(amount: float):
+func take_damage(amount: float, attacker = null):
 	# 影分身吸收伤害
 	if has_meta("has_clones") and get_meta("has_clones"):
 		var clones = get_tree().get_nodes_in_group("shadow_clones")
@@ -281,11 +281,21 @@ func knockback(vector: Vector2):
 	global_position += vector
 
 func heal(amount: float):
-	current_hp = min(current_hp + amount, MAX_HP)
+	current_hp = min(current_hp + amount, max_hp)
 	_update_health_text()
 	# 回复闪光
 	modulate = Color(0.5, 1, 0.5)
 	await get_tree().create_timer(0.15).timeout
+	if is_instance_valid(self):
+		modulate = Color(1, 1, 1, 1)
+
+func increase_max_hp(amount: float):
+	max_hp += amount
+	current_hp = min(current_hp + amount, max_hp)  # 同时回复等量生命
+	_update_health_text()
+	# 升级闪光（金色）
+	modulate = Color(1, 1, 0.5)
+	await get_tree().create_timer(0.2).timeout
 	if is_instance_valid(self):
 		modulate = Color(1, 1, 1, 1)
 
@@ -308,7 +318,7 @@ func die():
 
 	queue_redraw()  # 更新密卷标记点
 
-	current_hp = MAX_HP
+	current_hp = max_hp
 	_update_health_text()
 	# 回到基地
 	respawn()

@@ -29,7 +29,7 @@ z_index = -10
 texture = ExtResource("7")
 centered = true
 position = Vector2(750, 750)
-scale = Vector2(1.09, 1.95)
+scale = Vector2(1.2, 2.1)
 z_index = 1
 
 [node name="BoundaryWalls" type="StaticBody2D" parent="."]
@@ -64,26 +64,18 @@ team = 0
 position = Vector2(1420, 750)
 team = 1
 
-; M形野怪营地
+; 野怪营地：左怪、中Boss、右怪
 [node name="Camp1" type="Node2D" parent="."]
-position = Vector2(200, 580)
+position = Vector2(100, 600)
 script = ExtResource("6")
 
 [node name="Camp2" type="Node2D" parent="."]
-position = Vector2(400, 400)
-script = ExtResource("6")
-
-[node name="Camp3" type="Node2D" parent="."]
-position = Vector2(750, 300)
+position = Vector2(450, 300)
 script = ExtResource("6")
 is_boss_camp = true
 
-[node name="Camp4" type="Node2D" parent="."]
-position = Vector2(1100, 400)
-script = ExtResource("6")
-
-[node name="Camp5" type="Node2D" parent="."]
-position = Vector2(1150, 580)
+[node name="Camp3" type="Node2D" parent="."]
+position = Vector2(1000, 600)
 script = ExtResource("6")
 
 [node name="Player" parent="." instance=ExtResource("2")]

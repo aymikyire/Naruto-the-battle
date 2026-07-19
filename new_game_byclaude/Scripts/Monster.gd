@@ -3,19 +3,24 @@ extends CharacterBody2D
 # 野怪
 class_name Monster
 
-const MAX_HP := 6.0
-var current_hp := MAX_HP
+const BOSS_TEX := preload("res://Assets/boss.webp")
+const NORMAL_TEX := preload("res://Assets/怪物.webp")
+
+var max_hp := 6.0
+var current_hp := max_hp
 var is_boss := false  # 是否是中央Boss
 
 var speed := 60.0
 var aggro_range := 200.0
 var attack_range := 40.0
+var max_chase_range := 400.0  # 最大追击距离，超过则回到出生点
 var attack_damage := 0.5
 var attack_timer := 0.0
 const ATTACK_COOLDOWN := 1.5
 
 var target: Node2D = null
 var home_position: Vector2
+var last_attacker = null  # 记录最后攻击者，用于Boss击杀奖励
 
 @onready var sprite := $Sprite2D
 @onready var health_bar := $HealthBar
@@ -24,20 +29,25 @@ var home_position: Vector2
 
 func _ready():
     add_to_group("monsters")
-    current_hp = MAX_HP
+    if is_boss:
+        max_hp = 12.0        # Boss血量翻倍
+        sprite.texture = BOSS_TEX
+        sprite.scale = Vector2(0.32, 0.32)  # 普通怪0.16的2倍
+        attack_damage = 2.0   # Boss伤害翻倍
+    else:
+        max_hp = 6.0
+        sprite.texture = NORMAL_TEX
+        sprite.scale = Vector2(0.16, 0.16)
+    current_hp = max_hp
     home_position = global_position
     _update_health_text()
     health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
-    # 贴图缩放
-    if is_boss:
-        sprite.scale = Vector2(0.24, 0.24)  # Boss更大（普通怪0.16的1.5倍）
-        attack_damage = 1.0  # Boss伤害翻倍
     # 隐藏_draw角色视觉（贴图已替代）
     if character_visual:
         character_visual.visible = false
 
 func _update_health_text():
-    health_bar.text = str(current_hp) + "/" + str(MAX_HP)
+    health_bar.text = str(current_hp) + "/" + str(max_hp)
 
 func _physics_process(delta):
     attack_timer -= delta
@@ -54,9 +64,16 @@ func _physics_process(delta):
 
     if target and is_instance_valid(target):
         var dist = global_position.distance_to(target.global_position)
+        var home_dist = global_position.distance_to(home_position)
+
+        # 离出生点太远 → 放弃追击，回到原位
+        if home_dist > max_chase_range:
+            target = null
+            return_to_home(delta)
+            return
 
         if dist < aggro_range:
-            # 追击玩家
+            # 追击目标
             var dir = (target.global_position - global_position).normalized()
             velocity = dir * speed
             move_and_slide()
@@ -78,10 +95,15 @@ func _physics_process(delta):
 
 func find_target():
     var players = get_tree().get_nodes_in_group("players")
+    var nearest = null
+    var min_dist = INF
     for p in players:
         if is_instance_valid(p):
-            return p
-    return null
+            var d = global_position.distance_to(p.global_position)
+            if d < min_dist:
+                min_dist = d
+                nearest = p
+    return nearest
 
 func return_to_home(delta):
     var dist = global_position.distance_to(home_position)
@@ -92,7 +114,9 @@ func return_to_home(delta):
     else:
         velocity = Vector2.ZERO
 
-func take_damage(amount: float):
+func take_damage(amount: float, attacker = null):
+    if attacker != null:
+        last_attacker = attacker
     current_hp -= amount
     _update_health_text()
     # 受击反馈
@@ -105,9 +129,9 @@ func take_damage(amount: float):
         die()
 
 func die():
-    # 掉落技能
+    # 掉落技能并通知营地
     var camp = get_parent()
     if camp and camp.has_method("on_monster_died"):
-        camp.on_monster_died(self)
+        camp.on_monster_died(self, last_attacker)
 
     queue_free()

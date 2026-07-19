@@ -64,17 +64,36 @@ func has_alive_monsters() -> bool:
             return true
     return false
 
-func on_monster_died(monster):
+func on_monster_died(monster, killer = null):
     _monsters.erase(monster)
     drop_skill(monster.global_position)
 
-    # 启动刷新计时
+    # Boss击杀奖励：掉落红色生命球（拾取后永久+5HP）
+    if is_boss_camp:
+        _drop_hp_orb(monster.global_position)
+
+    # 启动刷新计时（Boss翻倍）
+    var timer_duration := respawn_timer * 2 if is_boss_camp else respawn_timer
     if _timer == null:
         _timer = Timer.new()
         _timer.one_shot = true
         _timer.timeout.connect(spawn_monsters)
         add_child(_timer)
-    _timer.start(respawn_timer)
+    _timer.start(timer_duration)
+
+# 掉落红色生命球
+func _drop_hp_orb(pos: Vector2):
+    var orb = preload("res://Scripts/HpOrb.gd").new()
+    # 设置Area2D属性
+    orb.name = "HpOrb"
+    # 添加碰撞形状
+    var shape = CircleShape2D.new()
+    shape.radius = 45.0
+    var col = CollisionShape2D.new()
+    col.shape = shape
+    orb.add_child(col)
+    orb.global_position = pos + Vector2(randf_range(-15, 15), -100 + randf_range(-10, 10))
+    get_parent().add_child(orb)
 
 func drop_skill(pos: Vector2):
     # 随机掉落一个技能
