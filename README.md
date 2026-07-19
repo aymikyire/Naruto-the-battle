@@ -5,6 +5,28 @@
 
 ---
 
+## 🔧 技术概览
+
+| 维度 | 说明 |
+|------|------|
+| **引擎** | Godot 4.7.1（GDScript），纯 2D 渲染管线，Y-sort 实现 2.5D 俯视视角 |
+| **平台** | Android（APK 导出），含 PC 键盘调试模式 |
+| **架构** | 场景树驱动 + 信号总线，CanvasLayer 独立 UI 层（`layer=10`），逻辑与表现分离 |
+| **游戏循环** | AI 状态机（打野→寻敌→战斗→拆塔）+ 物理碰撞帧同步 |
+| **输入系统** | 自定义虚拟摇杆（`_input` 全局事件） + GUI 按钮（`gui_input` 信号），双端兼容 |
+| **渲染** | `Sprite2D` 贴图 + `_draw()` 降级兜底，chroma-key 去背，y轴 sin 浮动动画 |
+| **碰撞** | `Area2D` + `PhysicsRayQueryParameters2D` 射线检测，直接位移击退 |
+
+### 核心架构亮点
+
+- **纯 GDScript 无插件依赖**，零 C++ 模块，场景树即架构图
+- **AI 行为树**：三态轮询状态机（FARMING → SEEKING → FIGHTING），每帧 `_process` 驱动，无协程调度
+- **技能系统**：`SkillManager` 统一调度 + 独立场景脚本（`Fireball.gd` / `RasenganArea.gd` / `ShadowClone.gd`），热插拔设计
+- **Unity-Style 分组**：Godot 组系统（`human_player` / `monsters` / `bases` / `camps`）替代硬编码引用，支持运行时动态注册
+- **移动端适配**：`CanvasLayer` 独立 UI + `call_deferred` 延迟初始化 + 视口等比缩放，适配 360px ~ 1920px 屏幕
+
+---
+
 ## 📋 游戏设计总纲
 
 ### 一句话核心
