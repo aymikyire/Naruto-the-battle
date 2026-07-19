@@ -53,6 +53,10 @@ var attack_speed := 1.0  # 攻击间隔秒
 @onready var health_bar := $HealthBar
 @onready var character_visual := $CharacterVisual
 
+# 角色贴图
+const SASUKE_TEX := preload("res://Assets/player_sasuke.png")
+const NARUTO_TEX := preload("res://Assets/player_naruto.png")
+
 func _ready():
     add_to_group("players")
     current_hp = MAX_HP
@@ -64,6 +68,12 @@ func _ready():
     # 隐藏_draw角色视觉（贴图已替代）
     if character_visual:
         character_visual.visible = false
+
+    # 角色分配（从GameManager读取）
+    is_senju = not GameManager.is_swap_mode  # 正常模式敌方千手，互换模式敌方宇智波
+    if not is_senju:
+        # 敌方是宇智波/佐助
+        sprite.texture = SASUKE_TEX
 
     # 初始绘制密卷标记点
     queue_redraw()
@@ -208,6 +218,8 @@ func make_decision():
 func _is_farming_target_valid() -> bool:
     # 有活的野怪目标
     if target and is_instance_valid(target):
+        if _is_pickup_target(target):
+            return true  # 密卷还没消失，继续去捡
         return target.has_method("take_damage") and target.current_hp > 0
     # 有营地目标且营地还有活的野怪
     if camp_target and is_instance_valid(camp_target):
@@ -238,6 +250,27 @@ func find_enemy_base():
         if is_instance_valid(b) and b.team != team:
             return b
     return null
+
+# 判断目标是否是密卷拾取物
+func _is_pickup_target(node) -> bool:
+    return node is SkillPickup and node.skill_data != null
+
+# 搜索附近的密卷拾取物（找最近的一个）
+func _scan_nearby_pickup() -> bool:
+    var nearest = null
+    var min_dist = 400.0
+    for p in get_tree().get_nodes_in_group("skill_pickups"):
+        if is_instance_valid(p) and p is SkillPickup and p.skill_data != null:
+            var d = global_position.distance_to(p.global_position)
+            if d < min_dist:
+                min_dist = d
+                nearest = p
+    if nearest:
+        target = nearest
+        camp_target = null
+        _patrol_target_pos = Vector2.ZERO
+        return true
+    return false
 
 # 搜索最近的活野怪作为目标
 func find_farming_target():
@@ -309,8 +342,21 @@ func execute_behavior(delta):
 
         State.FARMING:
             var moved := false
+            # 情况0：优先处理密卷拾取（每帧自动扫描 + 拾取）
+            if not (target and is_instance_valid(target) and _is_pickup_target(target)):
+                _scan_nearby_pickup()
+            if target and is_instance_valid(target) and _is_pickup_target(target):
+                var dist = global_position.distance_to(target.global_position)
+                if dist > 35:
+                    move_to(target.global_position)
+                else:
+                    velocity = Vector2.ZERO
+                    if target.skill_data != null:
+                        pickup_skill(target.skill_data)
+                        target.queue_free()
+                moved = true
             # 情况1：有活的野怪目标
-            if target and is_instance_valid(target) and target.current_hp > 0 and target.has_method("take_damage"):
+            elif target and is_instance_valid(target) and target.current_hp > 0 and target.has_method("take_damage"):
                 var dist = global_position.distance_to(target.global_position)
                 if dist > 150:
                     # 远距离 → 直接走向野怪位置

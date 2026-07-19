@@ -12,6 +12,7 @@ var _float_time := 0.0
 @onready var label := $Label
 
 func _ready():
+	add_to_group("skill_pickups")
 	body_entered.connect(_on_body_entered)
 	if skill_data:
 		label.text = skill_data.get("name", "技能")

@@ -28,12 +28,13 @@ func _ready():
     home_position = global_position
     _update_health_text()
     health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
+    # 贴图缩放
     if is_boss:
-        sprite.scale = Vector2(1.5, 1.5)
+        sprite.scale = Vector2(0.24, 0.24)  # Boss更大（普通怪0.16的1.5倍）
         attack_damage = 1.0  # Boss伤害翻倍
-    # 配置角色视觉
+    # 隐藏_draw角色视觉（贴图已替代）
     if character_visual:
-        character_visual.type = SimpleCharacter.Type.MONSTER
+        character_visual.visible = false
 
 func _update_health_text():
     health_bar.text = str(current_hp) + "/" + str(MAX_HP)

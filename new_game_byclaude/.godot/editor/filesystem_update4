@@ -18,3 +18,4 @@ res://Scenes/Player.tscn
 res://Scripts/Base.gd
 res://Scripts/MonsterCamp.gd
 res://Scripts/SkillManager.gd
+res://Scripts/GameManager.gd

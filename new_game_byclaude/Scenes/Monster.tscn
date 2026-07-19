@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://monster"]
+[gd_scene load_steps=5 format=3 uid="uid://monster"]
 
 [ext_resource type="Script" path="res://Scripts/Monster.gd" id="1"]
 [ext_resource type="Script" path="res://Scripts/SimpleCharacter.gd" id="2"]
+[ext_resource type="Texture2D" path="res://Assets/怪物.webp" id="3"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 14
@@ -17,7 +18,9 @@ groups = ["monsters"]
 shape = SubResource("CapsuleShape2D_1")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(1, 1)
+scale = Vector2(0.16, 0.16)
+texture = ExtResource("3")
+centered = true
 
 [node name="HealthBar" type="Label" parent="."]
 position = Vector2(-20, -27)
