@@ -19,3 +19,5 @@ res://Scripts/Base.gd
 res://Scripts/MonsterCamp.gd
 res://Scripts/SkillManager.gd
 res://Scripts/GameManager.gd
+res://Scripts/GameUI.gd
+res://Scripts/HpOrb.gd

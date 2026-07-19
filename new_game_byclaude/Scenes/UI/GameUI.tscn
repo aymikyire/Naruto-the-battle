@@ -1,15 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://gameui"]
+[gd_scene load_steps=7 format=3 uid="uid://gameui"]
 
 [ext_resource type="Script" path="res://Scripts/VirtualJoystick.gd" id="1"]
 [ext_resource type="Script" path="res://Scripts/AttackButton.gd" id="2"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/GameOverPanel.tscn" id="3"]
 [ext_resource type="Script" path="res://Scripts/SkillSlotUI.gd" id="4"]
+[ext_resource type="Script" path="res://Scripts/GameUI.gd" id="5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(80, 80)
 
 [node name="GameUI" type="CanvasLayer"]
 layer = 10
+script = ExtResource("5")
 
 ; 摇杆容器（左下角）
 [node name="JoystickContainer" type="Control" parent="."]
@@ -51,27 +53,14 @@ script = ExtResource("4")
 [node name="GameOverPanel" parent="." instance=ExtResource("3")]
 visible = false
 
-; 顶部信息
+; 顶部阵营显示（居中单行）
 [node name="TopBar" type="Control" parent="."]
 position = Vector2(0, 0)
 size = Vector2(1920, 60)
 
-[node name="PlayerName" type="Label" parent="TopBar"]
-position = Vector2(20, 10)
-text = "宇智波 (你)"
-size = Vector2(200, 40)
-theme_override_font_sizes/font_size = 20
-
-[node name="VS" type="Label" parent="TopBar"]
-position = Vector2(860, 10)
-text = "VS"
-size = Vector2(200, 40)
+[node name="FactionDisplay" type="Label" parent="TopBar"]
+position = Vector2(0, 8)
+size = Vector2(1920, 44)
+text = "宇智波一族  vs  千手一族"
 theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
-
-[node name="EnemyName" type="Label" parent="TopBar"]
-position = Vector2(1700, 10)
-text = "千手 (AI)"
-size = Vector2(200, 40)
-theme_override_font_sizes/font_size = 20
-horizontal_alignment = 2

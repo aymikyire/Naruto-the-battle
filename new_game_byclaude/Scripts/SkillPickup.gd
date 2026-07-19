@@ -8,6 +8,11 @@ var lifetime := 30.0  # 30秒无人捡自动消失
 var blink_timer := 0.0
 var _float_time := 0.0
 
+# 卷轴贴图
+const FIRE_SCROLL := preload("res://Assets/红色卷轴(火球术).png")
+const WATER_SCROLL := preload("res://Assets/蓝色卷轴(螺旋丸).png")
+const SHADOW_SCROLL := preload("res://Assets/紫色卷轴(影分身).png")
+
 @onready var sprite := $Sprite2D
 @onready var label := $Label
 
@@ -16,6 +21,16 @@ func _ready():
 	body_entered.connect(_on_body_entered)
 	if skill_data:
 		label.text = skill_data.get("name", "技能")
+		# 根据技能类型设置贴图
+		match skill_data.get("type", ""):
+			"fireball":
+				sprite.texture = FIRE_SCROLL
+			"rasengan":
+				sprite.texture = WATER_SCROLL
+			"shadow_clone":
+				sprite.texture = SHADOW_SCROLL
+		# 贴图放大约3倍（原_draw外圈42px→贴图显示约250px）
+		sprite.scale = Vector2(0.045, 0.045)
 
 func _process(delta):
 	_float_time += delta
@@ -29,27 +44,6 @@ func _process(delta):
 			visible = not visible
 	if lifetime <= -3.0:
 		queue_free()
-
-	queue_redraw()
-
-func _draw():
-	var bob := sin(_float_time * 3.0) * 3.0
-	var float_y := bob
-
-	# 外圈光晕
-	draw_circle(Vector2(0, float_y), 42, Color(1, 0.85, 0.2, 0.15))
-	# 主圈（金黄）
-	draw_circle(Vector2(0, float_y), 30, Color(1, 0.8, 0.2, 0.8))
-	# 内圈（亮黄）
-	draw_circle(Vector2(0, float_y), 18, Color(1, 0.9, 0.4, 0.9))
-	# 核心（白）
-	draw_circle(Vector2(0, float_y), 9, Color(1, 1, 0.8, 1.0))
-
-	# 星型标记（3x放大）
-	var icon_size := 12.0
-	var dirs := [Vector2(0, -1), Vector2(0.7, -0.7), Vector2(1, 0), Vector2(0.7, 0.7), Vector2(0, 1)]
-	for d in dirs:
-		draw_line(Vector2(0, float_y), Vector2(0, float_y) + d * icon_size, Color(1, 1, 1, 0.6), 3.0)
 
 func _on_body_entered(body):
 	if body.has_method("pickup_skill"):

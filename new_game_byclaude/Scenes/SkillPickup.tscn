@@ -14,7 +14,8 @@ script = ExtResource("1")
 shape = SubResource("CircleShape2D_1")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(1, 1)
+scale = Vector2(0.045, 0.045)
+centered = true
 
 ; 黄色发光圆表示技能（已由 _draw 替代）
 [node name="Visual" type="ColorRect" parent="."]
