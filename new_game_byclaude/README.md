@@ -280,6 +280,10 @@ new_game_byclaude/
 - [x] 优化角色贴图透明（chroma-key去背景改用边界洪水填充算法，边角完全透明）
 - [x] 所有血条改为红色细条（StyleBoxFlat主题覆盖，红色填充+半透明暗红背景）
 - [x] 血条改为数字文本形式（ProgressBar → Label，显示 "current_hp / MAX_HP"）
+- [x] 手机触摸按钮修复：AttackButton/SkillButton的`gui_input`增加`InputEventMouseButton`兼容（部分Android设备触屏事件被转为鼠标事件）
+- [x] 手机小屏适配：GameUI._reposition_ui()新增动态缩放，按钮/摇杆尺寸随视口宽度等比缩放（最小0.5倍）
+- [x] SkillSlotUI新增`apply_scale()`方法，子按钮尺寸随UI缩放自动调整
+- [x] 修复`set_scale`与Control内置方法命名冲突
 
 #### 平衡性调整
 - [x] 角色生命值翻倍（5→10），基地生命值翻倍（10→20）
@@ -435,4 +439,4 @@ new_game_byclaude/
 > 制作人: lyxin
 > 引擎: Godot 4.7.1
 > 状态: ✅ 可正常运行
-> 最后更新: 2026-07-19
+> 最后更新: 2026-07-20
