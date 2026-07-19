@@ -1,27 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://shadowclone"]
+[gd_scene load_steps=2 format=3 uid="uid://shadowclone"]
 
 [ext_resource type="Script" path="res://Scripts/ShadowClone.gd" id="1"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
-radius = 14
-height = 28
-
-[node name="ShadowClone" type="CharacterBody2D"]
-collision_layer = 1
-collision_mask = 1
+[node name="ShadowClone" type="Node2D"]
 script = ExtResource("1")
-groups = ["shadow_clones"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CapsuleShape2D_1")
-
-[node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(1, 1)
-
-; 半透明分身（已由 _draw 替代）
-[node name="Visual" type="ColorRect" parent="."]
-visible = false
-color = Color(1, 0.3, 0.3, 0.5)
-position = Vector2(-10, -10)
-size = Vector2(20, 20)
-z_index = 1

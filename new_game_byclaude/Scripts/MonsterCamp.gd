@@ -16,7 +16,7 @@ var available_skills := [
     {
         "type": "fireball",
         "name": "火球术",
-        "description": "发射三个火球，距离越近击退越远",
+        "description": "发射三个火球，每个1点伤害，距离越近击退越远",
         "damage": 2.0,
         "cooldown": 5.0,
         "icon": null
@@ -78,7 +78,7 @@ func drop_skill(pos: Vector2):
 
     var pickup = preload("res://Scenes/SkillPickup.tscn").instantiate()
     pickup.skill_data = skill_data
-    pickup.global_position = pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+    pickup.global_position = pos + Vector2(randf_range(-15, 15), -100 + randf_range(-10, 10))
     get_parent().add_child(pickup)
 
     # Boss掉落两个
@@ -86,5 +86,5 @@ func drop_skill(pos: Vector2):
         var skill_data2 = available_skills[randi() % available_skills.size()].duplicate()
         var pickup2 = preload("res://Scenes/SkillPickup.tscn").instantiate()
         pickup2.skill_data = skill_data2
-        pickup2.global_position = pos + Vector2(randf_range(-10, 10), randf_range(-10, 10))
+        pickup2.global_position = pos + Vector2(randf_range(-15, 15), -100 + randf_range(-10, 10))
         get_parent().add_child(pickup2)

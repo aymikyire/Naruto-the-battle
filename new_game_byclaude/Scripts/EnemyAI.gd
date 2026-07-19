@@ -7,7 +7,7 @@ class_name EnemyAI
 const TEAM_UCHIHA := 0
 const TEAM_SENJU := 1
 
-const MAX_HP := 5
+const MAX_HP := 10
 const SPEED := 90.0  # 初始移速为玩家的0.9倍
 const MAP_WIDTH := 1500
 const MAP_HEIGHT := 1500
@@ -54,8 +54,34 @@ func _ready():
     if character_visual:
         character_visual.visible = false
 
+    # 初始绘制密卷标记点
+    queue_redraw()
+
 func _update_health_text():
     health_bar.text = str(current_hp) + "/" + str(MAX_HP)
+
+func _draw():
+    # 在血条上方绘制金黄色密卷标记点
+    var skill_count := 0
+    for s in skill_slots:
+        if s != null:
+            skill_count += 1
+    if skill_count == 0:
+        return
+
+    var dot_y := -48  # 血条上方
+    var dot_radius := 5.0
+    var dot_spacing := 14.0
+    var start_x := -(float(skill_count) - 1.0) * dot_spacing / 2.0
+
+    for i in range(skill_count):
+        var dot_pos := Vector2(start_x + i * dot_spacing, dot_y)
+        # 外圈光晕
+        draw_circle(dot_pos, dot_radius + 2, Color(1, 0.85, 0.2, 0.3))
+        # 实心金黄点
+        draw_circle(dot_pos, dot_radius, Color(1, 0.8, 0.2, 1.0))
+        # 高光
+        draw_circle(dot_pos + Vector2(-1.5, -1.5), dot_radius * 0.4, Color(1, 1, 0.6, 0.8))
 
 func _process(delta):
     # CD更新
@@ -217,7 +243,12 @@ func auto_attack():
 
     # 统一普攻：每次 0.5 伤害（与玩家一致）
     if target and is_instance_valid(target):
-        target.take_damage(0.5)
+        var dmg := 0.5
+        # 影分身双倍伤害
+        if has_meta("has_clones") and get_meta("has_clones"):
+            dmg = 1.0
+            _consume_clone()
+        target.take_damage(dmg)
 
     if is_senju:
         # 千手一族：第3次攻击击退（无减速）
@@ -273,10 +304,30 @@ func pickup_skill(skill_data):
     for i in range(skill_slots.size()):
         if skill_slots[i] == null:
             skill_slots[i] = skill_data
+            queue_redraw()  # 更新密卷标记点
             return true
     return false
 
+# 消耗影分身
+func _consume_clone():
+    var clones = get_tree().get_nodes_in_group("shadow_clones")
+    for c in clones:
+        if is_instance_valid(c) and c.caster == self:
+            c.disappear()
+            return
+    set_meta("has_clones", false)
+
 func take_damage(amount: float):
+    # 影分身吸收伤害
+    if has_meta("has_clones") and get_meta("has_clones"):
+        var clones = get_tree().get_nodes_in_group("shadow_clones")
+        for c in clones:
+            if is_instance_valid(c) and c.caster == self:
+                amount = c.absorb_damage(amount)
+                break
+        if amount <= 0:
+            return  # 伤害被完全吸收
+
     current_hp -= amount
     _update_health_text()
     modulate = Color(1, 0.3, 0.3)
@@ -291,6 +342,10 @@ func knockback(vector: Vector2):
     velocity = vector
 
 func die():
+    # 移除影分身
+    if has_meta("has_clones") and get_meta("has_clones"):
+        _consume_clone()
+
     # 掉落随机技能
     var owned = []
     for i in range(skill_slots.size()):
@@ -300,10 +355,11 @@ func die():
         var drop_idx = owned[randi() % owned.size()]
         var drop = preload("res://Scenes/SkillPickup.tscn").instantiate()
         drop.skill_data = skill_slots[drop_idx]
-        drop.global_position = global_position
+        drop.global_position = global_position + Vector2(randf_range(-15, 15), -100 + randf_range(-10, 10))
         get_parent().add_child(drop)
         skill_slots[drop_idx] = null
 
+    queue_redraw()  # 更新密卷标记点
     current_hp = MAX_HP
     _update_health_text()
     respawn()

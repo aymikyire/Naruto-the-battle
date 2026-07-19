@@ -6,7 +6,7 @@ class_name GameBase
 const TEAM_UCHIHA := 0
 const TEAM_SENJU := 1
 
-var max_hp := 10.0
+var max_hp := 20.0
 var current_hp := max_hp
 var team := TEAM_UCHIHA  # 由 Main 场景设置
 var _heal_timer := 0.0

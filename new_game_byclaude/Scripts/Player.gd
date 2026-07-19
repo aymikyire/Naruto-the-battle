@@ -2,7 +2,7 @@ extends CharacterBody2D
 class_name Player
 
 # 玩家基础属性
-const MAX_HP := 5
+const MAX_HP := 10
 const SPEED := 100.0  # 1单位/秒 (100px/s)
 const MAP_WIDTH := 1500  # 地图总宽
 const MAP_HEIGHT := 1500  # 地图总高
@@ -61,8 +61,34 @@ func _ready():
 	# 延迟一帧，等UI场景准备好后再找技能槽
 	call_deferred("_init_skill_ui")
 
+	# 初始绘制密卷标记点
+	queue_redraw()
+
 func _update_health_text():
 	health_bar.text = str(current_hp) + "/" + str(MAX_HP)
+
+func _draw():
+	# 在血条上方绘制金黄色密卷标记点
+	var skill_count := 0
+	for s in skill_slots:
+		if s != null:
+			skill_count += 1
+	if skill_count == 0:
+		return
+
+	var dot_y := -48  # 血条上方
+	var dot_radius := 5.0
+	var dot_spacing := 14.0
+	var start_x := -(float(skill_count) - 1.0) * dot_spacing / 2.0
+
+	for i in range(skill_count):
+		var dot_pos := Vector2(start_x + i * dot_spacing, dot_y)
+		# 外圈光晕
+		draw_circle(dot_pos, dot_radius + 2, Color(1, 0.85, 0.2, 0.3))
+		# 实心金黄点
+		draw_circle(dot_pos, dot_radius, Color(1, 0.8, 0.2, 1.0))
+		# 高光
+		draw_circle(dot_pos + Vector2(-1.5, -1.5), dot_radius * 0.4, Color(1, 1, 0.6, 0.8))
 
 func _init_skill_ui():
 	skill_ui = get_tree().get_first_node_in_group("skill_ui")
@@ -186,9 +212,23 @@ func deal_damage_in_front(damage: float):
 	var result := space_state.intersect_ray(query)
 
 	if result and result.collider.has_method("take_damage"):
+		# 影分身双倍伤害
+		if has_meta("has_clones") and get_meta("has_clones"):
+			damage *= 2
+			_consume_clone()
 		result.collider.take_damage(damage)
 
 func take_damage(amount: float):
+	# 影分身吸收伤害
+	if has_meta("has_clones") and get_meta("has_clones"):
+		var clones = get_tree().get_nodes_in_group("shadow_clones")
+		for c in clones:
+			if is_instance_valid(c) and c.caster == self:
+				amount = c.absorb_damage(amount)
+				break
+		if amount <= 0:
+			return  # 伤害被完全吸收
+
 	current_hp -= amount
 	_update_health_text()
 	# 闪红效果
@@ -217,6 +257,10 @@ func get_team() -> int:
 	return team
 
 func die():
+	# 移除影分身
+	if has_meta("has_clones") and get_meta("has_clones"):
+		_consume_clone()
+
 	# 掉落随机一个技能
 	var owned_skills = []
 	for i in range(skill_slots.size()):
@@ -229,6 +273,7 @@ func die():
 	# 清空技能
 	for i in range(skill_slots.size()):
 		skill_slots[i] = null
+	queue_redraw()  # 更新密卷标记点
 
 	current_hp = MAX_HP
 	_update_health_text()
@@ -252,20 +297,32 @@ func drop_skill_at_position(slot_idx: int, pos: Vector2):
 	# 在地图生成可拾取的技能物品
 	var skill_pickup = preload("res://Scenes/SkillPickup.tscn").instantiate()
 	skill_pickup.skill_data = skill_data
-	skill_pickup.global_position = pos
+	skill_pickup.global_position = pos + Vector2(randf_range(-15, 15), -100 + randf_range(-10, 10))
 	get_parent().add_child(skill_pickup)
 	skill_slots[slot_idx] = null
+	queue_redraw()  # 更新密卷标记点
 
 func pickup_skill(skill_data):
 	for i in range(skill_slots.size()):
 		if skill_slots[i] == null:
 			skill_slots[i] = skill_data
 			skill_ui.update_slot(i, skill_data)
+			queue_redraw()  # 更新密卷标记点
 			return true
 	# 如果满了，替换第一个
 	skill_slots[0] = skill_data
 	skill_ui.update_slot(0, skill_data)
+	queue_redraw()  # 更新密卷标记点
 	return true
+
+# 消耗影分身
+func _consume_clone():
+	var clones = get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == self:
+			c.disappear()
+			return
+	set_meta("has_clones", false)
 
 func use_skill(slot_idx: int):
 	if slot_idx < 0 or slot_idx >= skill_slots.size():
