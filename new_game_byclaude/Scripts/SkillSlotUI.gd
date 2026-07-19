@@ -12,7 +12,7 @@ func _ready():
 	add_to_group("skill_ui")
 	init_slots(slot_count)
 
-func init_slots(count: int):
+func init_slots(count: int, scale := 1.0):
 	slot_count = count
 	# 清空旧的
 	for btn in slot_buttons:
@@ -20,16 +20,31 @@ func init_slots(count: int):
 			btn.queue_free()
 	slot_buttons.clear()
 
-	# 在SkillSlotUI区域内横向排列
-	var btn_size := 70
-	var gap := 10
+	_create_buttons(scale)
 
-	for i in range(count):
+func _create_buttons(scale: float):
+	var btn_size := 130 * scale
+	var gap := 8 * scale
+
+	for i in range(slot_count):
 		var btn = skill_slot_scene.instantiate()
-		btn.position = Vector2(i * (btn_size + gap), 10)
+		btn.position = Vector2(i * (btn_size + gap), 10 * scale)
+		btn.size = Vector2(btn_size, btn_size)
 		btn.slot_index = i
 		add_child(btn)
 		slot_buttons.append(btn)
+
+# 当屏幕缩放变化时，就地更新按钮尺寸（不重建）
+func apply_scale(scale: float):
+	var btn_size := 130 * scale
+	var gap := 8 * scale
+
+	for i in range(slot_buttons.size()):
+		var btn = slot_buttons[i]
+		if not is_instance_valid(btn):
+			continue
+		btn.position = Vector2(i * (btn_size + gap), 10 * scale)
+		btn.size = Vector2(btn_size, btn_size)
 
 func update_slot(idx: int, skill_data):
 	if idx >= 0 and idx < slot_buttons.size():

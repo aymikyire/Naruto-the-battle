@@ -54,6 +54,9 @@ text = ""
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = true
+zoom = Vector2(2.0, 2.0)
+position_smoothing_enabled = true
+position_smoothing_speed = 5.0
 
 ; 角色视觉（_draw绘制）
 [node name="CharacterVisual" type="Node2D" parent="."]
