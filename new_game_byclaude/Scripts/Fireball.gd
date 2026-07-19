@@ -47,7 +47,7 @@ func _on_body_entered(body):
 	if body.has_method("take_damage"):
 		# 击退效果：距离越近击退越远
 		var dist = caster.global_position.distance_to(body.global_position) if caster else 999
-		var knockback_strength = clamp(200.0 - dist * 0.5, 50.0, 300.0)
+		var knockback_strength = max(200.0 - dist, 20.0)  # 越近击退越强
 		body.take_damage(damage)
 
 		if body.has_method("knockback"):

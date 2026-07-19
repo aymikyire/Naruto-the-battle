@@ -16,11 +16,22 @@ const SPRITE_SCALE := 0.04
 var current_hp := MAX_HP
 var _bob_time := 0.0
 var team := TEAM_SENJU
-var target: Node2D = null  # 当前目标
-var camp_target = null  # 目标野怪营地
+var target = null  # 当前攻击目标（玩家/野怪）
+var camp_target = null  # 目标野怪营地（野怪死光后去等刷新）
 var state := State.IDLE
+var _patrol_index := 0  # 巡逻点索引
+var _patrol_target_pos := Vector2.ZERO  # 硬编码巡逻目标坐标
 
-enum State { IDLE, FARMING, SEEKING, FIGHTING, RETURNING }
+enum State { IDLE, FARMING, SEEKING, FIGHTING, ATTACKING_BASE, RETURNING }
+
+# 已知5个营地坐标（兜底巡逻用）
+const CAMP_POSITIONS := [
+    Vector2(200, 580),
+    Vector2(400, 400),
+    Vector2(750, 300),
+    Vector2(1100, 400),
+    Vector2(1300, 580),
+]
 
 # AI状态机
 var ai_timer := 0.0
@@ -56,6 +67,37 @@ func _ready():
 
     # 初始绘制密卷标记点
     queue_redraw()
+
+    # 添加状态调试标签
+    var debug_label = Label.new()
+    debug_label.name = "DebugLabel"
+    debug_label.position = Vector2(-50, -55)
+    debug_label.size = Vector2(100, 14)
+    debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    debug_label.add_theme_color_override("font_color", Color(0, 1, 1))
+    debug_label.add_theme_font_size_override("font_size", 10)
+    add_child(debug_label)
+
+    # 开局直接打野发育（先硬编码走到最近的营地5）
+    state = State.FARMING
+    target = null
+    camp_target = null
+    _patrol_index = 4  # 从最近的营地5(1300,580)开始
+    _patrol_target_pos = CAMP_POSITIONS[4]
+    # 同时尝试查找真实野怪
+    find_farming_target()
+
+func update_debug_label():
+    var label = get_node_or_null("DebugLabel")
+    if not label:
+        return
+    var state_names = ["IDLE", "FARMING", "SEEKING", "FIGHTING", "ATK_BASE", "RETURN"]
+    var txt = state_names[state]
+    if target and is_instance_valid(target):
+        txt += "→" + target.name
+    elif _patrol_target_pos != Vector2.ZERO:
+        txt += "→ Patrol"
+    label.text = txt
 
 func _update_health_text():
     health_bar.text = str(current_hp) + "/" + str(MAX_HP)
@@ -93,6 +135,9 @@ func _process(delta):
     if attack_timer > 0:
         attack_timer -= delta
 
+    # 更新调试标签
+    update_debug_label()
+
     # 行走浮动动画
     if velocity.length() > 0:
         _bob_time += delta * 8.0
@@ -117,31 +162,62 @@ func _physics_process(delta):
     )
 
 func make_decision():
-    # 决策逻辑
-    var nearest_enemy = find_nearest_enemy()
+    var player = find_nearest_enemy()
 
-    if nearest_enemy and global_position.distance_to(nearest_enemy.global_position) < 400:
-        # 附近有敌人 → 战斗
-        target = nearest_enemy
-        state = State.FIGHTING
+    # 1. 玩家已死/复活中 → 拆基地
+    if not player or not is_instance_valid(player) or not player.visible:
+        state = State.ATTACKING_BASE
         return
 
-    # 检查技能数量
-    var skill_count = 0
+    # 2. 统计当前技能数量
+    var skill_count := 0
     for s in skill_slots:
         if s != null:
             skill_count += 1
 
+    # 3. 技能少于2个 → 优先打野发育
     if skill_count < 2:
-        # 技能不够 → 去打野
-        state = State.FARMING
-
-        camp_target = find_nearest_camp()
+        # 但如果玩家贴脸（<200px），立即自卫反击
+        if player and is_instance_valid(player):
+            var dist := global_position.distance_to(player.global_position)
+            if dist < 200:
+                target = player
+                state = State.FIGHTING
+                return
+        # 否则继续安心打野
+        if state != State.FARMING:
+            state = State.FARMING
+            find_farming_target()
+        elif not _is_farming_target_valid():
+            find_farming_target()
         return
 
-    # 技能够了 → 去找敌人
-    state = State.SEEKING
-    target = find_nearest_enemy()
+    # 4. 技能 >= 2个 → 主动找玩家战斗
+    var dist_to_player := INF
+    if player:
+        dist_to_player = global_position.distance_to(player.global_position)
+
+    if dist_to_player < 600:
+        target = player
+        state = State.FIGHTING
+    else:
+        target = player
+        state = State.SEEKING
+
+# 检查当前打野目标是否仍然有效
+func _is_farming_target_valid() -> bool:
+    # 有活的野怪目标
+    if target and is_instance_valid(target):
+        return target.has_method("take_damage") and target.current_hp > 0
+    # 有营地目标且营地还有活的野怪
+    if camp_target and is_instance_valid(camp_target):
+        return camp_target.has_alive_monsters()
+    # 硬编码巡逻
+    if _patrol_target_pos != Vector2.ZERO:
+        return true
+    return false
+
+# ========== 寻找目标 ==========
 
 func find_nearest_enemy():
     var players = get_tree().get_nodes_in_group("players")
@@ -156,50 +232,171 @@ func find_nearest_enemy():
             nearest = p
     return nearest
 
-func find_nearest_camp():
-    var camps = get_tree().get_nodes_in_group("monster_camps")
-    var nearest = null
+func find_enemy_base():
+    var bases = get_tree().get_nodes_in_group("bases")
+    for b in bases:
+        if is_instance_valid(b) and b.team != team:
+            return b
+    return null
+
+# 搜索最近的活野怪作为目标
+func find_farming_target():
+    # 1. 优先找活的野怪（全地图）
+    var monsters = get_tree().get_nodes_in_group("monsters")
+    var nearest_monster = null
     var min_dist = INF
+    for m in monsters:
+        if is_instance_valid(m) and m.current_hp > 0:
+            var d = global_position.distance_to(m.global_position)
+            if d < min_dist:
+                min_dist = d
+                nearest_monster = m
+
+    if nearest_monster:
+        target = nearest_monster
+        camp_target = null
+        _patrol_target_pos = Vector2.ZERO
+        return
+
+    # 2. 没有活野怪 → 找最近且有活怪的营地（去等刷新）
+    var camps = get_tree().get_nodes_in_group("monster_camps")
+    var nearest_camp = null
+    var min_cd = INF
     for c in camps:
-        if c.has_alive_monsters():
-            var dist = global_position.distance_to(c.global_position)
-            if dist < min_dist:
-                min_dist = dist
-                nearest = c
-    return nearest
+        if is_instance_valid(c) and c.has_alive_monsters():
+            var d = global_position.distance_to(c.global_position)
+            if d < min_cd:
+                min_cd = d
+                nearest_camp = c
+    if nearest_camp:
+        target = null
+        camp_target = nearest_camp
+        _patrol_target_pos = Vector2.ZERO
+        return
+
+    # 3. 全地图都没活怪 → 找最近的营地等刷新（所有营地都在等刷新）
+    var fallback_camp = null
+    var min_fb = INF
+    for c in camps:
+        if is_instance_valid(c):
+            var d = global_position.distance_to(c.global_position)
+            if d < min_fb:
+                min_fb = d
+                fallback_camp = c
+    if fallback_camp:
+        target = null
+        camp_target = fallback_camp
+        _patrol_target_pos = Vector2.ZERO
+        return
+
+    # 4. 啥都没找到 → 硬编码巡逻到已知营地坐标
+    var camp_pos = CAMP_POSITIONS[_patrol_index]
+    var dist_to_camp = global_position.distance_to(camp_pos)
+    # 到达当前巡逻点后切换到下一个
+    if dist_to_camp < 60:
+        _patrol_index = (_patrol_index + 1) % CAMP_POSITIONS.size()
+        camp_pos = CAMP_POSITIONS[_patrol_index]
+    target = null
+    camp_target = null
+    _patrol_target_pos = camp_pos
+
+# ========== 行为执行 ==========
 
 func execute_behavior(delta):
     match state:
         State.IDLE:
             velocity = Vector2.ZERO
+
         State.FARMING:
-            if camp_target and is_instance_valid(camp_target):
-                move_to(camp_target.global_position)
-                # 到达营地附近攻击野怪
-                if global_position.distance_to(camp_target.global_position) < 100:
-                    auto_attack_monsters()
-            else:
-                camp_target = find_nearest_camp()
+            var moved := false
+            # 情况1：有活的野怪目标
+            if target and is_instance_valid(target) and target.current_hp > 0 and target.has_method("take_damage"):
+                var dist = global_position.distance_to(target.global_position)
+                if dist > 150:
+                    # 远距离 → 直接走向野怪位置
+                    move_to(target.global_position)
+                elif dist > 80:
+                    # 近距离 → 走向野怪前方60px的安全位置（避开碰撞阻挡）
+                    var dir = (target.global_position - global_position).normalized()
+                    var safe_pos = target.global_position - dir * 60.0
+                    move_to(safe_pos)
+                else:
+                    velocity = Vector2.ZERO
+                    # 面朝野怪
+                    var dir_to_target = (target.global_position - global_position).normalized()
+                    if abs(dir_to_target.x) > 0.1:
+                        sprite.scale.x = sign(dir_to_target.x) * SPRITE_SCALE
+                    if attack_timer <= 0:
+                        attack_timer = 1.0
+                        target.take_damage(1.0)
+                moved = true
+            # 情况2：有营地节点目标（正在等刷新）
+            elif camp_target and is_instance_valid(camp_target):
+                var to_camp := global_position.distance_to(camp_target.global_position)
+                if to_camp > 60:
+                    move_to(camp_target.global_position)
+                else:
+                    # 到达营地 → 停下检查是否有活野怪
+                    velocity = Vector2.ZERO
+                    if camp_target.has_alive_monsters():
+                        find_farming_target()  # 有怪了，去找最近的
+                moved = true
+            # 情况3：硬编码巡逻
+            elif _patrol_target_pos != Vector2.ZERO:
+                move_to(_patrol_target_pos)
+                if global_position.distance_to(_patrol_target_pos) < 60:
+                    velocity = Vector2.ZERO
+                    _patrol_index = (_patrol_index + 1) % CAMP_POSITIONS.size()
+                    _patrol_target_pos = CAMP_POSITIONS[_patrol_index]
+                moved = true
+            # 情况4：什么都没找到
+            if not moved:
+                find_farming_target()
+
         State.SEEKING:
             if target and is_instance_valid(target):
                 move_to(target.global_position)
             else:
                 state = State.FARMING
+                find_farming_target()
 
         State.FIGHTING:
             if target and is_instance_valid(target):
                 fight_target()
             else:
                 state = State.SEEKING
+
+        State.ATTACKING_BASE:
+            var base = find_enemy_base()
+            if base and is_instance_valid(base):
+                move_to(base.global_position)
+                # 面朝基地
+                var dir_to_base = (base.global_position - global_position).normalized()
+                if abs(dir_to_base.x) > 0.1:
+                    sprite.scale.x = sign(dir_to_base.x) * SPRITE_SCALE
+                # 到达基地附近 → 攻击
+                if global_position.distance_to(base.global_position) < 80:
+                    velocity = Vector2.ZERO
+                    var old_target = target
+                    target = base
+                    auto_attack()
+                    target = old_target
+                    # 使用技能攻击基地
+                    for i in range(skill_slots.size()):
+                        if skill_slots[i] != null and skill_cooldowns[i] <= 0:
+                            use_skill(i, null)
+            else:
+                state = State.FARMING
+                find_farming_target()
+
         State.RETURNING:
-            # 回基地
             var base = get_tree().get_nodes_in_group("bases")
             if base.size() > 0:
                 var my_base = base[1] if team == TEAM_SENJU else base[0]
                 move_to(my_base.global_position)
                 if global_position.distance_to(my_base.global_position) < 50:
                     state = State.FARMING
-
+                    find_farming_target()
 
 func move_to(pos: Vector2):
     var dir = (pos - global_position).normalized()
@@ -215,18 +412,22 @@ func fight_target():
 
     var dist = global_position.distance_to(target.global_position)
 
+    # 面朝目标（确保技能方向正确）
+    var dir_to_target = (target.global_position - global_position).normalized()
+    if abs(dir_to_target.x) > 0.1:
+        sprite.scale.x = sign(dir_to_target.x) * SPRITE_SCALE
+
     # 追敌
     if dist > 80:
         move_to(target.global_position)
     else:
-        # 攻击
         velocity = Vector2.ZERO
         auto_attack()
 
-    # 使用技能
+    # 使用技能攻击玩家
     for i in range(skill_slots.size()):
         if skill_slots[i] != null and skill_cooldowns[i] <= 0:
-            use_skill(i, target)
+            use_skill(i, null)
 
 func auto_attack():
     if attack_timer > 0:
@@ -266,26 +467,7 @@ func auto_attack():
                 var dir = (target.global_position - global_position).normalized()
                 global_position += dir * 100
 
-func auto_attack_monsters():
-    var monsters = get_tree().get_nodes_in_group("monsters")
-    var nearest_monster = null
-    var min_dist = INF
-    for m in monsters:
-        if m.current_hp > 0:
-            var dist = global_position.distance_to(m.global_position)
-            if dist < min_dist:
-                min_dist = dist
-                nearest_monster = m
-
-    if nearest_monster:
-        var dist = global_position.distance_to(nearest_monster.global_position)
-        if dist > 50:
-            move_to(nearest_monster.global_position)
-        else:
-            velocity = Vector2.ZERO
-            if attack_timer <= 0:
-                attack_timer = 1.0
-                nearest_monster.take_damage(1.0)
+# ========== 技能系统 ==========
 
 func use_skill(slot_idx: int, _target):
     if slot_idx < 0 or slot_idx >= skill_slots.size():
@@ -296,7 +478,6 @@ func use_skill(slot_idx: int, _target):
         return
 
     skill_cooldowns[slot_idx] = skill_slots[slot_idx].cooldown
-    # 使用技能
     var skill_manager = $SkillManager
     skill_manager.use_skill(slot_idx, skill_slots[slot_idx], self)
 
@@ -304,7 +485,7 @@ func pickup_skill(skill_data):
     for i in range(skill_slots.size()):
         if skill_slots[i] == null:
             skill_slots[i] = skill_data
-            queue_redraw()  # 更新密卷标记点
+            queue_redraw()
             return true
     return false
 
@@ -317,8 +498,9 @@ func _consume_clone():
             return
     set_meta("has_clones", false)
 
+# ========== 战斗受击 ==========
+
 func take_damage(amount: float):
-    # 影分身吸收伤害
     if has_meta("has_clones") and get_meta("has_clones"):
         var clones = get_tree().get_nodes_in_group("shadow_clones")
         for c in clones:
@@ -326,7 +508,7 @@ func take_damage(amount: float):
                 amount = c.absorb_damage(amount)
                 break
         if amount <= 0:
-            return  # 伤害被完全吸收
+            return
 
     current_hp -= amount
     _update_health_text()
@@ -339,14 +521,12 @@ func take_damage(amount: float):
         die()
 
 func knockback(vector: Vector2):
-    velocity = vector
+    global_position += vector
 
 func die():
-    # 移除影分身
     if has_meta("has_clones") and get_meta("has_clones"):
         _consume_clone()
 
-    # 掉落随机技能
     var owned = []
     for i in range(skill_slots.size()):
         if skill_slots[i] != null:
@@ -359,7 +539,7 @@ func die():
         get_parent().add_child(drop)
         skill_slots[drop_idx] = null
 
-    queue_redraw()  # 更新密卷标记点
+    queue_redraw()
     current_hp = MAX_HP
     _update_health_text()
     respawn()
@@ -369,15 +549,15 @@ func respawn():
     global_position = spawn_pos
     velocity = Vector2.ZERO
     visible = false
-    await get_tree().create_timer(3.0).timeout
+    await get_tree().create_timer(10.0).timeout
     visible = true
     modulate = Color(1, 1, 1, 1)
     state = State.FARMING
+    find_farming_target()
 
 func heal(amount: float):
     current_hp = min(current_hp + amount, MAX_HP)
     _update_health_text()
-    # 回复闪光
     modulate = Color(0.5, 1, 0.5)
     await get_tree().create_timer(0.15).timeout
     if is_instance_valid(self):

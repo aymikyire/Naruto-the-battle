@@ -18,6 +18,7 @@ var _friendly_bodies := []  # 在治疗范围内的友方单位
 @onready var heal_area := $HealArea
 
 func _ready():
+    add_to_group("bases")
     _update_health_text()
     health_bar.add_theme_color_override("font_color", Color(1, 0.15, 0.15))
     label.text = name

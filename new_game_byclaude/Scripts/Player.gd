@@ -241,8 +241,8 @@ func take_damage(amount: float):
 		die()
 
 func knockback(vector: Vector2):
-	# 直接位置位移（velocity会被_physics_process覆盖）
-	global_position += vector.normalized() * 30.0
+	# 直接位置位移（保留传入的完整距离）
+	global_position += vector
 
 func heal(amount: float):
 	current_hp = min(current_hp + amount, MAX_HP)
@@ -261,7 +261,7 @@ func die():
 	if has_meta("has_clones") and get_meta("has_clones"):
 		_consume_clone()
 
-	# 掉落随机一个技能
+	# 掉落随机一个技能（保留剩余密卷）
 	var owned_skills = []
 	for i in range(skill_slots.size()):
 		if skill_slots[i] != null:
@@ -270,9 +270,6 @@ func die():
 		var drop_idx = owned_skills[randi() % owned_skills.size()]
 		drop_skill_at_position(drop_idx, global_position)
 
-	# 清空技能
-	for i in range(skill_slots.size()):
-		skill_slots[i] = null
 	queue_redraw()  # 更新密卷标记点
 
 	current_hp = MAX_HP
@@ -284,9 +281,9 @@ func respawn():
 	var spawn_pos = Vector2(100, MAP_HEIGHT/2) if team == Team.UCHIHA else Vector2(MAP_WIDTH-100, MAP_HEIGHT/2)
 	global_position = spawn_pos
 	velocity = Vector2.ZERO
-	# 3秒复活
+	# 10秒复活
 	visible = false
-	await get_tree().create_timer(3.0).timeout
+	await get_tree().create_timer(10.0).timeout
 	visible = true
 	modulate = Color(1, 1, 1, 1)
 

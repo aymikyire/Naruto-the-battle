@@ -6,7 +6,7 @@ class_name MonsterCamp
 var is_boss_camp := false  # 中央营地是否为Boss
 var spawn_count := 1
 var monster_scene = preload("res://Scenes/Monster.tscn")
-var respawn_timer := 20.0  # 20秒刷新
+var respawn_timer := 40.0  # 40秒刷新
 
 var _monsters := []
 var _timer: Timer

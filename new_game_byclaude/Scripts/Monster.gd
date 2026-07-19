@@ -23,6 +23,7 @@ var home_position: Vector2
 @onready var character_visual := $CharacterVisual
 
 func _ready():
+    add_to_group("monsters")
     current_hp = MAX_HP
     home_position = global_position
     _update_health_text()
