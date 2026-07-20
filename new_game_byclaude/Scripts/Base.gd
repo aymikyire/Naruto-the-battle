@@ -14,6 +14,9 @@ const HEAL_RATE := 2.0  # 每秒回复2格
 var _hp_increase_timer := 0.0
 const HP_INCREASE_INTERVAL := 60.0  # 每分钟增加5点最大生命值
 var _friendly_bodies := []  # 在治疗范围内的友方单位
+var _damage_log := []  # 伤害日志 [[time, amount], ...]，用于5s内超5点触发反击
+const RETALIATE_THRESHOLD := 5.0
+const RETALIATE_WINDOW := 5.0
 
 @onready var health_bar := $HealthBar
 @onready var label := $Label
@@ -58,6 +61,10 @@ func take_damage(amount: float, attacker = null):
     _update_health_text()
     AudioManager.play_sfx("base_hit", global_position)
 
+    # 记录伤害，5s内累计超5点触发友军反击
+    _damage_log.append([Time.get_ticks_msec() / 1000.0, amount])
+    _check_retaliate()
+
     # 闪烁
     modulate = Color(1, 0.5, 0.5)
     await get_tree().create_timer(0.15).timeout
@@ -65,6 +72,23 @@ func take_damage(amount: float, attacker = null):
 
     if current_hp <= 0:
         destroyed()
+
+# 检查5s内累计伤害是否超过阈值，通知友方AI反击
+func _check_retaliate():
+    var now = Time.get_ticks_msec() / 1000.0
+    # 清理过期记录
+    _damage_log = _damage_log.filter(func(e): return now - e[0] <= RETALIATE_WINDOW)
+    var total := 0.0
+    for e in _damage_log:
+        total += e[1]
+
+    if total >= RETALIATE_THRESHOLD:
+        # 找到同阵营的AI触发反击
+        for p in get_tree().get_nodes_in_group("players"):
+            if p is EnemyAI and p.get_team() == team and p.has_method("teleport_to_base"):
+                p.teleport_to_base(global_position)
+                _damage_log.clear()  # 防止重复触发
+                return
 
 func destroyed():
     AudioManager.play_sfx("base_destroy", global_position)

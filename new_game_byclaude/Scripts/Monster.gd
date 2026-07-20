@@ -31,7 +31,7 @@ var last_attacker = null  # 记录最后攻击者，用于Boss击杀奖励
 func _ready():
     add_to_group("monsters")
     if is_boss:
-        max_hp = 12.0        # Boss血量翻倍
+        max_hp = 24.0        # Boss血量翻倍
         sprite.texture = BOSS_TEX
         sprite.scale = Vector2(0.32, 0.32)  # 普通怪0.16的2倍
         attack_damage = 2.0   # Boss伤害翻倍

@@ -46,7 +46,7 @@ var _is_dead := false  # 防止重复死亡/复活
 # 阵营专属
 var is_senju := true  # AI默认千手一族
 var basic_attack_damage := 1.0
-var attack_speed := 1.5  # 攻击间隔秒
+var attack_speed := 0.75  # 攻击间隔秒
 
 # 引用
 @onready var sprite := $Sprite2D
@@ -180,6 +180,11 @@ func _physics_process(delta):
 	)
 
 func make_decision():
+	# 0. 血量≤2 → 回基地恢复（最高优先级）
+	if current_hp <= 2.0:
+		state = State.RETURNING
+		return
+
 	var player = find_nearest_enemy()
 
 	# 1. 玩家已死/复活中 → 拆基地
@@ -389,7 +394,7 @@ func execute_behavior(delta):
 					if abs(dir_to_target.x) > 0.1:
 						sprite.scale.x = sign(dir_to_target.x) * SPRITE_SCALE
 					if attack_timer <= 0:
-						attack_timer = 1.5
+						attack_timer = 0.75
 						target.take_damage(1.0, self)
 				moved = true
 			# 情况2：有营地节点目标（正在等刷新）
@@ -450,13 +455,15 @@ func execute_behavior(delta):
 				find_farming_target()
 
 		State.RETURNING:
-			var base = get_tree().get_nodes_in_group("bases")
-			if base.size() > 0:
-				var my_base = base[1] if team == TEAM_SENJU else base[0]
+			# 回到己方基地，满血再出发
+			var my_base = find_friendly_base()
+			if my_base and is_instance_valid(my_base):
 				move_to(my_base.global_position)
-				if global_position.distance_to(my_base.global_position) < 50:
-					state = State.FARMING
-					find_farming_target()
+				if global_position.distance_to(my_base.global_position) < 80:
+					velocity = Vector2.ZERO
+					if current_hp >= max_hp:
+						state = State.FARMING
+						find_farming_target()
 
 func move_to(pos: Vector2):
 	var dir = (pos - global_position).normalized()
@@ -702,3 +709,22 @@ func _flash_clone_special(tex: Texture2D, scale_val: Vector2, duration: float):
 		if is_instance_valid(c) and c.caster == self and c.has_method("flash_special"):
 			c.flash_special(tex, scale_val, duration)
 			return
+
+
+# 基地受袭反击 — 最高优先级
+func teleport_to_base(base_pos: Vector2):
+	# 传送到基地位置防守
+	global_position = base_pos + Vector2(-80, 0)
+	velocity = Vector2.ZERO
+	state = State.FIGHTING
+	target = find_nearest_enemy()
+	camp_target = null
+	_patrol_target_pos = Vector2.ZERO
+	ai_timer = 0.0
+
+func find_friendly_base():
+	var bases = get_tree().get_nodes_in_group("bases")
+	for b in bases:
+		if is_instance_valid(b) and b.team == team:
+			return b
+	return null
