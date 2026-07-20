@@ -46,7 +46,7 @@ var _is_dead := false  # 防止重复死亡/复活
 # 阵营专属
 var is_senju := true  # AI默认千手一族
 var basic_attack_damage := 1.0
-var attack_speed := 1.0  # 攻击间隔秒
+var attack_speed := 3.0  # 攻击间隔秒
 
 # 引用
 @onready var sprite := $Sprite2D
@@ -385,7 +385,7 @@ func execute_behavior(delta):
 					if abs(dir_to_target.x) > 0.1:
 						sprite.scale.x = sign(dir_to_target.x) * SPRITE_SCALE
 					if attack_timer <= 0:
-						attack_timer = 1.0
+						attack_timer = 3.0
 						target.take_damage(1.0, self)
 				moved = true
 			# 情况2：有营地节点目标（正在等刷新）

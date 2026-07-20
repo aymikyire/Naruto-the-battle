@@ -16,7 +16,7 @@ var attack_range := 40.0
 var max_chase_range := 400.0  # 最大追击距离，超过则回到出生点
 var attack_damage := 0.5
 var attack_timer := 0.0
-const ATTACK_COOLDOWN := 1.5
+const ATTACK_COOLDOWN := 4.5
 
 var target: Node2D = null
 var home_position: Vector2

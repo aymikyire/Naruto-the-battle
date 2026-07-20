@@ -14,6 +14,8 @@ enum AttackState { IDLE, ATTACK1, ATTACK2, ATTACK3, DASH }
 var attack_state := AttackState.IDLE
 var attack_timer := 0.0
 var attack_combo_window := 0.6  # 连击窗口
+var attack_global_cooldown := 0.0  # 全局普攻冷却（减速至1/3）
+const ATTACK_GCD := 1.8  # 两次普攻之间最小间隔（秒）
 var current_hp := max_hp
 var is_dashing := false
 var _facing := 1.0  # 人物朝向：1=右，-1=左
@@ -29,6 +31,8 @@ var is_uchiha := true  # false = 千手风格（第3下击退）
 # 角色贴图
 const SASUKE_TEX := preload("res://Assets/player_sasuke.png")
 const NARUTO_TEX := preload("res://Assets/player_naruto.png")
+const SASUKE_ATTACK_TEX := preload("res://Assets/sasuke_attack.png")
+const NARUTO_ATTACK_TEX := preload("res://Assets/naruto_attack.png")
 const SASUKE_SPECIAL_TEX := preload("res://Assets/sasuke_special_attack.png")
 const NARUTO_SPECIAL_TEX := preload("res://Assets/naruto_special_attack.png")
 const SASUKE_SPECIAL_SCALE := SPRITE_SCALE  # 佐助特殊攻击贴图缩放（1024x1024）
@@ -165,6 +169,9 @@ func _physics_process(delta):
 func attack():
 	if is_dashing:
 		return
+	# 全局攻击冷却（仅新连击开始时检查，连击过程中不限制）
+	if attack_state == AttackState.IDLE and attack_global_cooldown > 0:
+		return
 	if is_uchiha:
 		# 宇智波：4连击，第4下位移突进
 		match attack_state:
@@ -194,6 +201,7 @@ func do_attack_1():
 	if character_visual:
 		character_visual.trigger_attack()
 	AudioManager.play_sfx("swing", global_position)
+	_flash_attack_tex()
 	deal_damage_in_front(0.5)
 
 func do_attack_2():
@@ -202,6 +210,7 @@ func do_attack_2():
 	if character_visual:
 		character_visual.trigger_attack()
 	AudioManager.play_sfx("swing", global_position)
+	_flash_attack_tex()
 	deal_damage_in_front(0.5)
 
 func do_attack_3():
@@ -210,6 +219,7 @@ func do_attack_3():
 	if character_visual:
 		character_visual.trigger_attack()
 	AudioManager.play_sfx("swing", global_position)
+	_flash_attack_tex()
 	deal_damage_in_front(0.5)
 
 func do_attack_3_senju():
@@ -220,7 +230,6 @@ func do_attack_3_senju():
 		character_visual.trigger_attack()
 	AudioManager.play_sfx("heavy_hit", global_position)
 	# 切换到鸣人重击贴图
-	var _prev_tex = sprite.texture
 	sprite.texture = NARUTO_SPECIAL_TEX
 	sprite.scale = Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE)
 	_flash_clone_special(NARUTO_SPECIAL_TEX, Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE), 0.2)
@@ -228,7 +237,7 @@ func do_attack_3_senju():
 	# 0.2秒后恢复
 	await get_tree().create_timer(0.2).timeout
 	if is_instance_valid(self):
-		sprite.texture = _prev_tex
+		sprite.texture = NARUTO_TEX
 		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
 
 func do_dash():
@@ -237,14 +246,13 @@ func do_dash():
 	AudioManager.play_sfx("whoosh", global_position)
 	dash_direction = Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
 	# 切换到佐助突进贴图
-	var _prev_tex = sprite.texture
 	sprite.texture = SASUKE_SPECIAL_TEX
 	sprite.scale = Vector2(_facing * SASUKE_SPECIAL_SCALE, SASUKE_SPECIAL_SCALE)
 	_flash_clone_special(SASUKE_SPECIAL_TEX, Vector2(_facing * SASUKE_SPECIAL_SCALE, SASUKE_SPECIAL_SCALE), 0.3)
 	# 0.3秒后恢复
 	await get_tree().create_timer(0.3).timeout
 	if is_instance_valid(self):
-		sprite.texture = _prev_tex
+		sprite.texture = SASUKE_TEX
 		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
 	# 冲刺无敌帧
 	set_collision_layer_value(1, false)
@@ -252,6 +260,28 @@ func do_dash():
 	is_dashing = false
 	set_collision_layer_value(1, true)
 	attack_state = AttackState.IDLE
+
+# 普通攻击时临时切换为攻击动作贴图，0.15秒后恢复
+func _flash_attack_tex():
+	var tex = SASUKE_ATTACK_TEX if is_uchiha else NARUTO_ATTACK_TEX
+	var idle = SASUKE_TEX if is_uchiha else NARUTO_TEX
+	sprite.texture = tex
+	# 分身同步切换
+	_flash_clone_attack(0.15)
+	await get_tree().create_timer(0.15).timeout
+	if is_instance_valid(self):
+		sprite.texture = idle
+
+# 通知分身切换为普攻贴图
+func _flash_clone_attack(duration: float):
+	if not has_meta("has_clones") or not get_meta("has_clones"):
+		return
+	var tex = SASUKE_ATTACK_TEX if is_uchiha else NARUTO_ATTACK_TEX
+	var clones = get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == self and c.has_method("flash_attack"):
+			c.flash_attack(tex, duration)
+			return
 
 # 通知分身切换为特殊攻击贴图
 func _flash_clone_special(tex: Texture2D, scale_val: Vector2, duration: float):

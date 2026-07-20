@@ -61,16 +61,35 @@ func absorb_damage(amount: float) -> float:
 
 	return amount - absorbed
 
-# 临时切换为特殊攻击贴图，duration秒后恢复
+# 临时切换为普通攻击贴图，duration秒后恢复为施法者当前贴图
+func flash_attack(tex: Texture2D, duration: float):
+	_sprite.texture = tex
+	await get_tree().create_timer(duration).timeout
+	if is_instance_valid(self):
+		_sync_to_caster_texture()
+
+# 临时切换为特殊攻击贴图，duration秒后恢复为施法者当前贴图
 func flash_special(texture: Texture2D, scale: Vector2, duration: float):
-	var prev_tex = _sprite.texture
-	var prev_scale = _sprite.scale
 	_sprite.texture = texture
 	_sprite.scale = scale
 	await get_tree().create_timer(duration).timeout
 	if is_instance_valid(self):
-		_sprite.texture = prev_tex
-		_sprite.scale = prev_scale
+		_sync_to_caster_texture()
+		_sync_to_caster_scale()
+
+# 与施法者贴图同步
+func _sync_to_caster_texture():
+	if not caster or not caster.has_node("Sprite2D"):
+		return
+	var cs: Sprite2D = caster.get_node("Sprite2D")
+	if cs.texture:
+		_sprite.texture = cs.texture
+
+func _sync_to_caster_scale():
+	if not caster or not caster.has_node("Sprite2D"):
+		return
+	var cs: Sprite2D = caster.get_node("Sprite2D")
+	_sprite.scale = cs.scale
 
 func disappear():
 	AudioManager.play_sfx("poof", global_position)
