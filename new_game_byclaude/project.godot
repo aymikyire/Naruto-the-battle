@@ -33,3 +33,7 @@ application/config/use_custom_icon=false
 
 [rendering]
 textures/vram_compression/import_etc2_astc=true
+
+[autoload]
+
+AudioManager="*res://Scripts/AudioManager.gd"

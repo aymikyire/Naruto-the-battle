@@ -494,6 +494,7 @@ func auto_attack():
 	var tw = create_tween()
 	tw.tween_property(sprite, "scale", Vector2(dir_sign * SPRITE_SCALE, SPRITE_SCALE), 0.12)
 
+	AudioManager.play_sfx("swing", global_position)
 	attack_combo_counter += 1
 
 	# 统一普攻：每次 0.5 伤害（与玩家一致）
@@ -566,6 +567,7 @@ func take_damage(amount: float, attacker = null):
 
 	current_hp -= amount
 	_update_health_text()
+	AudioManager.play_sfx("hurt", global_position)
 	modulate = Color(1, 0.3, 0.3)
 	# 立即检查死亡（防止await期间重复死亡）
 	if current_hp <= 0:
@@ -635,6 +637,7 @@ func respawn():
 	_is_dead = false
 
 func heal(amount: float):
+	
 	current_hp = min(current_hp + amount, max_hp)
 	_update_health_text()
 	modulate = Color(0.5, 1, 0.5)

@@ -43,9 +43,10 @@ func _on_heal_body_exited(body):
 func _update_health_text():
     health_bar.text = str(current_hp) + "/" + str(max_hp)
 
-func take_damage(amount: float):
+func take_damage(amount: float, attacker = null):
     current_hp -= amount
     _update_health_text()
+    AudioManager.play_sfx("base_hit", global_position)
 
     # 闪烁
     modulate = Color(1, 0.5, 0.5)
@@ -56,6 +57,7 @@ func take_damage(amount: float):
         destroyed()
 
 func destroyed():
+    AudioManager.play_sfx("base_destroy", global_position)
     label.text = "摧毁!"
     # 游戏结束
     var game_manager = get_node("/root/Main/GameManager")

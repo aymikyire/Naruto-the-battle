@@ -53,6 +53,7 @@ func absorb_damage(amount: float) -> float:
 	return amount - absorbed
 
 func disappear():
+	AudioManager.play_sfx("poof", global_position)
 	if caster and is_instance_valid(caster):
 		caster.set_meta("has_clones", false)
 	# 消散渐隐效果

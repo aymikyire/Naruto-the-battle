@@ -189,6 +189,7 @@ func do_attack_1():
 	attack_timer = attack_combo_window
 	if character_visual:
 		character_visual.trigger_attack()
+	AudioManager.play_sfx("swing", global_position)
 	deal_damage_in_front(0.5)
 
 func do_attack_2():
@@ -196,6 +197,7 @@ func do_attack_2():
 	attack_timer = attack_combo_window
 	if character_visual:
 		character_visual.trigger_attack()
+	AudioManager.play_sfx("swing", global_position)
 	deal_damage_in_front(0.5)
 
 func do_attack_3():
@@ -203,6 +205,7 @@ func do_attack_3():
 	attack_timer = attack_combo_window
 	if character_visual:
 		character_visual.trigger_attack()
+	AudioManager.play_sfx("swing", global_position)
 	deal_damage_in_front(0.5)
 
 func do_attack_3_senju():
@@ -211,11 +214,13 @@ func do_attack_3_senju():
 	attack_timer = attack_combo_window
 	if character_visual:
 		character_visual.trigger_attack()
+	AudioManager.play_sfx("swing", global_position)
 	deal_damage_in_front(0.5, true)
 
 func do_dash():
 	attack_state = AttackState.DASH
 	is_dashing = true
+	AudioManager.play_sfx("whoosh", global_position)
 	dash_direction = Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
 	# 冲刺攻击特效（保持朝向）
 	sprite.scale = Vector2(_facing * SPRITE_SCALE * 1.3, SPRITE_SCALE * 1.3)
@@ -245,6 +250,8 @@ func deal_damage_in_front(damage: float, apply_knockback: bool = false):
 	var result := space_state.intersect_ray(query)
 
 	if result and result.collider.has_method("take_damage"):
+		# 音效：击中
+		AudioManager.play_sfx("hit", result.position)
 		# 影分身双倍伤害
 		if has_meta("has_clones") and get_meta("has_clones"):
 			damage *= 2
@@ -267,6 +274,8 @@ func take_damage(amount: float, attacker = null):
 
 	current_hp -= amount
 	_update_health_text()
+	# 受击音效
+	AudioManager.play_sfx("hurt", global_position)
 	# 闪红效果
 	modulate = Color(1, 0.3, 0.3)
 	await get_tree().create_timer(0.1).timeout
@@ -274,6 +283,7 @@ func take_damage(amount: float, attacker = null):
 		modulate = Color(1, 1, 1, 1)
 
 	if current_hp <= 0:
+		AudioManager.play_sfx("death", global_position)
 		die()
 
 func knockback(vector: Vector2):
@@ -281,6 +291,7 @@ func knockback(vector: Vector2):
 	global_position += vector
 
 func heal(amount: float):
+	
 	current_hp = min(current_hp + amount, max_hp)
 	_update_health_text()
 	# 回复闪光
@@ -290,6 +301,7 @@ func heal(amount: float):
 		modulate = Color(1, 1, 1, 1)
 
 func increase_max_hp(amount: float):
+	AudioManager.play_sfx("pickup", global_position)
 	max_hp += amount
 	current_hp = min(current_hp + amount, max_hp)  # 同时回复等量生命
 	_update_health_text()
@@ -346,6 +358,7 @@ func drop_skill_at_position(slot_idx: int, pos: Vector2):
 	queue_redraw()  # 更新密卷标记点
 
 func pickup_skill(skill_data):
+	AudioManager.play_sfx("pickup", global_position)
 	# 首次拾取该类型密卷 → 显示效果提示
 	var skill_type: String = skill_data.get("type", "")
 	if skill_type != "" and not _seen_skill_types.has(skill_type):

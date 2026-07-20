@@ -47,5 +47,6 @@ func _process(delta):
 
 func _on_body_entered(body):
 	if body.has_method("pickup_skill"):
+		AudioManager.play_sfx("pickup", global_position)
 		body.pickup_skill(skill_data)
 		queue_free()

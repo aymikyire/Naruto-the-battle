@@ -86,6 +86,7 @@ func _physics_process(delta):
                     if character_visual:
                         character_visual.trigger_attack()
                     if target.has_method("take_damage"):
+                        AudioManager.play_sfx("hit", global_position)
                         target.take_damage(attack_damage)
         else:
             # 回到原位
@@ -119,6 +120,7 @@ func take_damage(amount: float, attacker = null):
         last_attacker = attacker
     current_hp -= amount
     _update_health_text()
+    AudioManager.play_sfx("hit", global_position)
     # 受击反馈
     modulate = Color(1, 0.5, 0.5)
     await get_tree().create_timer(0.1).timeout
@@ -132,6 +134,7 @@ func die():
     # 掉落技能并通知营地
     var camp = get_parent()
     if camp and camp.has_method("on_monster_died"):
-        camp.on_monster_died(self, last_attacker)
+        AudioManager.play_sfx("death", global_position)
+    camp.on_monster_died(self, last_attacker)
 
     queue_free()

@@ -13,6 +13,8 @@ func use_skill(slot_idx: int, skill_data, caster):
 
 # ========== 火球术 ==========
 func fire_fireball(caster, skill_data):
+	# 音效：发射火球
+	AudioManager.play_sfx("shoot", caster.global_position)
 	# 向前方发射多个火球，中距离
 	# 距离越近击退越远
 	# 伤害2格，CD 5s
@@ -44,6 +46,8 @@ func fire_fireball(caster, skill_data):
 
 # ========== 螺旋丸 ==========
 func use_rasengan(caster, skill_data):
+	# 音效：螺旋丸
+	AudioManager.play_sfx("rasengan", caster.global_position)
 	# 短位移 + 小范围持续伤害 2s, 每秒1格
 	var dir := Vector2.RIGHT if caster.sprite.scale.x >= 0 else Vector2.LEFT
 	caster.global_position += dir * 80  # 短位移
@@ -68,6 +72,8 @@ func use_rasengan(caster, skill_data):
 
 # ========== 影分身 ==========
 func use_shadow_clone(caster, skill_data):
+	# 音效：召唤分身
+	AudioManager.play_sfx("poof", caster.global_position)
 	# 检查是否已有分身
 	if caster.has_meta("has_clones") and caster.get_meta("has_clones"):
 		return  # 已有分身，不叠加

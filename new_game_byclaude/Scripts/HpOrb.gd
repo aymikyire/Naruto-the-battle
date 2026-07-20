@@ -31,6 +31,7 @@ func _process(delta):
 
 func _on_body_entered(body):
 	if body.has_method("increase_max_hp"):
+		
 		body.increase_max_hp(5.0)
 		if body.has_method("heal"):
 			body.heal(5.0)
