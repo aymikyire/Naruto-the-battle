@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784557494
+::res://::1784558310
 export_presets.cfg::TextFile::-1::1784483052::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1784553646::0::1::::<><><>0<>0<><>::
 游戏设计文档_技能拾取MOBA.md::TextFile::-1::1784483048::0::1::::<><><>0<>0<><>::
@@ -74,7 +74,7 @@ GameUI.gd::GDScript::3277324657256711566::1784483052::0::1::::<>CanvasLayer<><>0
 HpOrb.gd::GDScript::8780936189832076764::1784552027::0::1::::<>Area2D<><>0<>0<><>::
 Monster.gd::GDScript::8296675678147410494::1784557283::0::1::::Monster<>CharacterBody2D<><>0<>0<><>::
 MonsterCamp.gd::GDScript::5305626612005025699::1784483051::0::1::::MonsterCamp<>Node2D<><>0<>0<><>::
-Player.gd::GDScript::328637423532200903::1784557470::0::1::::Player<>CharacterBody2D<><>0<>0<><>::
+Player.gd::GDScript::328637423532200903::1784558436::0::1::::Player<>CharacterBody2D<><>0<>0<><>::
 RasenganArea.gd::GDScript::2079176700567875709::1784483051::0::1::::RasenganArea<>Area2D<><>0<>0<><>::
 ShadowClone.gd::GDScript::6635260071730851359::1784557725::0::1::::ShadowClone<>Node2D<><>0<>0<><>::
 SimpleCharacter.gd::GDScript::4097438160443595232::1784483048::0::1::::SimpleCharacter<>Node2D<><>0<>0<><>::

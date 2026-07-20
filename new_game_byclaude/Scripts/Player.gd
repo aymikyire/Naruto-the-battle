@@ -232,10 +232,13 @@ func do_attack_3_senju():
 	# 切换到鸣人重击贴图
 	sprite.texture = NARUTO_SPECIAL_TEX
 	sprite.scale = Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE)
-	_flash_clone_special(NARUTO_SPECIAL_TEX, Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE), 0.2)
+	_flash_clone_special(NARUTO_SPECIAL_TEX, Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE), 0.4)
 	deal_damage_in_front(0.5, true)
+	# 前冲位移50px（佐助1/3）
+	var dash_dir = Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
+	global_position += dash_dir * 50.0
 	# 0.2秒后恢复
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.4).timeout
 	if is_instance_valid(self):
 		sprite.texture = NARUTO_TEX
 		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
@@ -362,7 +365,7 @@ func increase_max_hp(amount: float):
 	_update_health_text()
 	# 升级闪光（金色）
 	modulate = Color(1, 1, 0.5)
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.4).timeout
 	if is_instance_valid(self):
 		modulate = Color(1, 1, 1, 1)
 
