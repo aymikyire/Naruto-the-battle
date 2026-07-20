@@ -11,53 +11,80 @@ func use_skill(slot_idx: int, skill_data, caster):
 		"shadow_clone":
 			use_shadow_clone(caster, skill_data)
 
+# ========== 工具：获取分身节点 ==========
+func _get_clone(caster):
+	if not caster.has_meta("has_clones") or not caster.get_meta("has_clones"):
+		return null
+	var clones = caster.get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == caster:
+			return c
+	return null
+
 # ========== 火球术 ==========
 func fire_fireball(caster, skill_data):
 	# 音效：发射火球
 	AudioManager.play_sfx("shoot", caster.global_position)
-	# 向前方发射多个火球，中距离
-	# 距离越近击退越远
-	# 伤害2格，CD 5s
 	var dir := Vector2.RIGHT if caster.sprite.scale.x >= 0 else Vector2.LEFT
-	var base_pos: Vector2 = caster.global_position + dir * 60  # 发射起点前移（3x）
-	var spread := 45.0  # 扩散角度偏移（3x）
-
-	# 佐助特性：发射4个火球（普通3个）
+	var base_pos: Vector2 = caster.global_position + dir * 60
+	var spread := 45.0
 	var fireball_count := 4 if _is_sasuke(caster) else 3
-	var center_offset := (fireball_count - 1) * 0.5  # 居中偏移
+	var center_offset := (fireball_count - 1) * 0.5
 
-	# 检测影分身双倍效果
-	var has_clone_buff: bool = caster.has_meta("has_clones") and caster.get_meta("has_clones")
-	var volley_count: int = 2 if has_clone_buff else 1
+	# 本体发射
+	_spawn_fireballs_dir(base_pos, dir, spread, fireball_count, center_offset, 0, caster)
 
-	for volley in range(volley_count):
-		var volley_offset := volley * 6  # 两轮稍微错开，不重叠
-		for i in range(fireball_count):
-			var fireball = preload("res://Scenes/Fireball.tscn").instantiate()
-			fireball.direction = dir
-			fireball.damage = 1.0  # 每个火球1点
-			fireball.global_position = base_pos + Vector2(0, (i - center_offset) * spread + volley_offset)
-			fireball.caster = caster
-			caster.get_parent().add_child(fireball)
+	# 影分身存在 → 额外发射一组，偏移20px
+	var clone = _get_clone(caster)
+	if clone:
+		var facing: float = sign(caster.sprite.scale.x)
+		var clone_offset: float = 20.0 * facing
+		var clone_pos: Vector2 = base_pos + Vector2(clone_offset, 0)
+		_spawn_fireballs_dir(clone_pos, dir, spread, fireball_count, center_offset, 0, caster)
+		# 确保分身不因任何异常清空meta而消失
+		caster.set_meta("has_clones", true)
 
-	# 消耗分身
-	if has_clone_buff:
-		_consume_clone(caster)
+# 辅助：生成一组火球
+func _spawn_fireballs_dir(base_pos: Vector2, dir: Vector2, spread: float,
+		count: int, center_offset: float, volley_offset: float, caster):
+	for i in range(count):
+		var fireball = preload("res://Scenes/Fireball.tscn").instantiate()
+		fireball.direction = dir
+		fireball.damage = 1.0
+		fireball.global_position = base_pos + Vector2(0, (i - center_offset) * spread + volley_offset)
+		fireball.caster = caster
+		caster.get_parent().add_child(fireball)
 
 # ========== 螺旋丸 ==========
 func use_rasengan(caster, skill_data):
 	# 音效：螺旋丸
 	AudioManager.play_sfx("rasengan", caster.global_position)
-	# 短位移 + 小范围持续伤害 2s, 每秒1格
 	var dir := Vector2.RIGHT if caster.sprite.scale.x >= 0 else Vector2.LEFT
 	caster.global_position += dir * 80  # 短位移
 
-	# 检测影分身双倍效果
-	var has_clone_buff: bool = caster.has_meta("has_clones") and caster.get_meta("has_clones")
-	var damage: float = 2.0 if has_clone_buff else 1.0  # 双倍伤害
+	var damage: float = 1.0
 
+	# 本体螺旋丸
+	_spawn_rasengan(caster, dir, damage)
+
+	# 影分身存在 → 额外放一个，偏移20px
+	var clone = _get_clone(caster)
+	if clone:
+		var facing: float = sign(caster.sprite.scale.x)
+		var offset_pos: Vector2 = caster.global_position + Vector2(20.0 * facing, 0)
+		var rasengan2 = preload("res://Scenes/RasenganArea.tscn").instantiate()
+		if _is_naruto(caster):
+			rasengan2.scale = Vector2(2, 2)
+		rasengan2.global_position = offset_pos + dir * 30
+		rasengan2.caster = caster
+		rasengan2.damage_per_tick = damage
+		rasengan2.duration = 2.0
+		caster.get_parent().add_child(rasengan2)
+		# 确保分身不消失
+		caster.set_meta("has_clones", true)
+
+func _spawn_rasengan(caster, dir: Vector2, damage: float):
 	var rasengan = preload("res://Scenes/RasenganArea.tscn").instantiate()
-	# 鸣人特性：螺旋丸范围翻倍
 	if _is_naruto(caster):
 		rasengan.scale = Vector2(2, 2)
 	rasengan.global_position = caster.global_position + dir * 30
@@ -65,10 +92,6 @@ func use_rasengan(caster, skill_data):
 	rasengan.damage_per_tick = damage
 	rasengan.duration = 2.0
 	caster.get_parent().add_child(rasengan)
-
-	# 消耗分身
-	if has_clone_buff:
-		_consume_clone(caster)
 
 # ========== 影分身 ==========
 func use_shadow_clone(caster, skill_data):
@@ -93,7 +116,7 @@ func _is_naruto(caster) -> bool:
 func _is_sasuke(caster) -> bool:
 	return ("is_uchiha" in caster and caster.is_uchiha == true) or ("is_senju" in caster and caster.is_senju == false)
 
-# 消耗分身：找到并移除，清除标记
+# 消耗分身：找到并移除，清除标记（保留给普攻/受伤使用）
 func _consume_clone(caster):
 	if not is_instance_valid(caster):
 		return
@@ -102,5 +125,4 @@ func _consume_clone(caster):
 		if is_instance_valid(c) and c.caster == caster:
 			c.disappear()
 			return
-	# 找不到分身节点但标记还在，清除标记
 	caster.set_meta("has_clones", false)

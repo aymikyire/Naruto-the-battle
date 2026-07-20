@@ -1,5 +1,5 @@
 9cad1ddce9e5a63143ba340c9520626b
-::res://::1784552138
+::res://::1784553170
 export_presets.cfg::TextFile::-1::1784483052::0::1::::<><><>0<>0<><>::
 README.md::TextFile::-1::1784483656::0::1::::<><><>0<>0<><>::
 游戏设计文档_技能拾取MOBA.md::TextFile::-1::1784483048::0::1::::<><><>0<>0<><>::
@@ -28,7 +28,7 @@ player_sasuke.png::CompressedTexture2D::5558051195770446116::1784483048::1784483
 蓝色卷轴(螺旋丸).jpg::CompressedTexture2D::2118156213142426651::1784483052::1784483750::1::::<><><>0<>0<>9421d0983e106b259cf61bd56086d5a5<>res://.godot/imported/蓝色卷轴(螺旋丸).jpg-3ad8869412ce60f4cc6a6773683400dc.ctex::
 蓝色卷轴(螺旋丸).png::CompressedTexture2D::5898363532666914026::1784483052::1784483750::1::::<><><>0<>0<>26db329d31b6d375bc4241708ca4b6d7<>res://.godot/imported/蓝色卷轴(螺旋丸).png-b10fa99319d4fdc8ba9e4b2b595106cf.ctex::
 螺旋丸音效.mp3::AudioStreamMP3::6067411023758028182::1784551919::1784552161::1::::<><><>0<>0<>1f191b4b2f6d1995e3ab39d080c1c0a5<>res://.godot/imported/螺旋丸音效.mp3-e19b24622926a62b5939d37a830b7288.mp3str::
-::res://music/::1784552439
+::res://music/::1784552491
 bgm.mp3::AudioStreamMP3::171610372232162149::1784550917::1784552130::1::::<><><>0<>0<>9798912ec5e93efa08da4035e884b59c<>res://.godot/imported/bgm.mp3-b2249dbe3aad16525805c060815ceecd.mp3str::
 fireball_original.wav::AudioStreamWAV::4311509871071350607::1784551633::1784552074::1::::<><><>0<>0<>e05da725f07e2005a95ca1f944949693<>res://.godot/imported/fireball_original.wav-9f1ced3ae8ce4fa495fafb0a356fc09c.sample::
 hurt.ogg::AudioStreamOggVorbis::7205441356084441078::1784551651::1784552130::1::::<><><>0<>0<>3e0ba58038413b246e1f3de09ae2f7cd<>res://.godot/imported/hurt.ogg-15682a4eead9476df694825c31c3c087.oggvorbisstr::
@@ -36,7 +36,7 @@ rasengan.mp3::AudioStreamMP3::7010090486572259991::1784551596::1784552130::1::::
 shoot.wav::AudioStreamWAV::8299549343613003994::1784552439::1784552491::1::::<><><>0<>0<>645fc81b0e17673f0eeb353a0140190e<>res://.godot/imported/shoot.wav-21fbddb128ec6997028135cff96918e9.sample::
 swing.mp3::AudioStreamMP3::285919417396935675::1784550951::1784552130::1::::<><><>0<>0<>4583cc89d3826e398ae48db283051454<>res://.godot/imported/swing.mp3-6ef6ea86b23021df660ab847322904af.mp3str::
 whoosh.mp3::AudioStreamMP3::2825328871913685428::1784550840::1784552130::1::::<><><>0<>0<>62a5cfd22d99b1d1e2785798beb9a88d<>res://.godot/imported/whoosh.mp3-0a1fc891a792d3604bc1156965a9435c.mp3str::
-::res://Scenes/::1784483052
+::res://Scenes/::1784552930
 Base.tscn::PackedScene::39920::1784483050::0::1::::<><><>0<>0<><>::res://Scripts/Base.gd
 EnemyAI.tscn::PackedScene::6775722920::1784483048::0::1::::<><><>0<>0<><>::res://Scripts/EnemyAI.gd<>res://Scripts/SkillManager.gd<>res://Scripts/SimpleCharacter.gd<>res://Assets/player_naruto.png
 Fireball.tscn::PackedScene::275752973289::1784483051::0::1::::<><><>0<>0<><>::res://Scripts/Fireball.gd
@@ -45,13 +45,13 @@ Monster.tscn::PackedScene::19191850885::1784483051::0::1::::<><><>0<>0<><>::res:
 MonsterCamp.tscn::PackedScene::25646761244336391::1784483048::0::1::::<><><>0<>0<><>::res://Scripts/MonsterCamp.gd<>res://Scenes/Monster.tscn
 Player.tscn::PackedScene::696258953::1784483052::0::1::::<><><>0<>0<><>::res://Scripts/Player.gd<>res://Scripts/SkillManager.gd<>res://Scripts/SimpleCharacter.gd<>res://Assets/player_sasuke.png
 RasenganArea.tscn::PackedScene::893720653325::1784483051::0::1::::<><><>0<>0<><>::res://Scripts/RasenganArea.gd
-ShadowClone.tscn::PackedScene::37583998722454446::1784483050::0::1::::<><><>0<>0<><>::res://Scripts/ShadowClone.gd
+ShadowClone.tscn::PackedScene::37583998722454446::1784552930::0::1::::<><><>0<>0<><>::res://Scripts/ShadowClone.gd
 SkillPickup.tscn::PackedScene::37780851293992847::1784483052::0::1::::<><><>0<>0<><>::res://Scripts/SkillPickup.gd
 ::res://Scenes/UI/::1784483052
 GameOverPanel.tscn::PackedScene::315691245981::1784483048::0::1::::<><><>0<>0<><>::
 GameUI.tscn::PackedScene::273089504::1784483052::0::1::::<><><>0<>0<><>::res://Scripts/VirtualJoystick.gd<>res://Scripts/AttackButton.gd<>res://Scenes/UI/GameOverPanel.tscn<>res://Scripts/SkillSlotUI.gd
 SkillButton.tscn::PackedScene::37780850674611309::1784483052::0::1::::<><><>0<>0<><>::res://Scripts/SkillButton.gd
-::res://Scripts/::1784552475
+::res://Scripts/::1784553151
 AttackButton.gd::GDScript::5789379646096108527::1784483052::0::1::::<>Control<><>0<>0<><>::
 AudioManager.gd::GDScript::554945579609519747::1784552475::0::1::::<>Node<><>0<>0<><>::
 Base.gd::GDScript::832515101287922604::1784550509::0::1::::GameBase<>StaticBody2D<><>0<>0<><>::
@@ -64,10 +64,10 @@ Monster.gd::GDScript::8296675678147410494::1784549914::0::1::::Monster<>Characte
 MonsterCamp.gd::GDScript::5305626612005025699::1784483051::0::1::::MonsterCamp<>Node2D<><>0<>0<><>::
 Player.gd::GDScript::328637423532200903::1784552027::0::1::::Player<>CharacterBody2D<><>0<>0<><>::
 RasenganArea.gd::GDScript::2079176700567875709::1784483051::0::1::::RasenganArea<>Area2D<><>0<>0<><>::
-ShadowClone.gd::GDScript::6635260071730851359::1784549559::0::1::::ShadowClone<>Node2D<><>0<>0<><>::
+ShadowClone.gd::GDScript::6635260071730851359::1784553122::0::1::::ShadowClone<>Node2D<><>0<>0<><>::
 SimpleCharacter.gd::GDScript::4097438160443595232::1784483048::0::1::::SimpleCharacter<>Node2D<><>0<>0<><>::
 SkillButton.gd::GDScript::8964394766791694309::1784483052::0::1::::SkillButton<>Control<><>0<>0<><>::
-SkillManager.gd::GDScript::4180140300011387082::1784549716::0::1::::<>Node<><>0<>0<><>::
+SkillManager.gd::GDScript::4180140300011387082::1784553237::0::1::::<>Node<><>0<>0<><>::
 SkillPickup.gd::GDScript::1146294415685690077::1784549559::0::1::::SkillPickup<>Area2D<><>0<>0<><>::
 SkillSlotUI.gd::GDScript::2385059154403190602::1784483052::0::1::::SkillSlotUI<>Control<><>0<>0<><>::
 VirtualJoystick.gd::GDScript::7049083087298285771::1784483048::0::1::::GameVirtualJoystick<>Control<><>0<>0<><>::
