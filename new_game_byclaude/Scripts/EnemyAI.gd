@@ -46,7 +46,7 @@ var _is_dead := false  # 防止重复死亡/复活
 # 阵营专属
 var is_senju := true  # AI默认千手一族
 var basic_attack_damage := 1.0
-var attack_speed := 3.0  # 攻击间隔秒
+var attack_speed := 1.5  # 攻击间隔秒
 
 # 引用
 @onready var sprite := $Sprite2D
@@ -56,6 +56,10 @@ var attack_speed := 3.0  # 攻击间隔秒
 # 角色贴图
 const SASUKE_TEX := preload("res://Assets/player_sasuke.png")
 const NARUTO_TEX := preload("res://Assets/player_naruto.png")
+const SASUKE_ATTACK_TEX := preload("res://Assets/sasuke_attack.png")
+const NARUTO_ATTACK_TEX := preload("res://Assets/naruto_attack.png")
+const SASUKE_SPECIAL_TEX := preload("res://Assets/sasuke_special_attack.png")
+const NARUTO_SPECIAL_TEX := preload("res://Assets/naruto_special_attack.png")
 
 func _ready():
 	add_to_group("players")
@@ -385,7 +389,7 @@ func execute_behavior(delta):
 					if abs(dir_to_target.x) > 0.1:
 						sprite.scale.x = sign(dir_to_target.x) * SPRITE_SCALE
 					if attack_timer <= 0:
-						attack_timer = 3.0
+						attack_timer = 1.5
 						target.take_damage(1.0, self)
 				moved = true
 			# 情况2：有营地节点目标（正在等刷新）
@@ -495,6 +499,7 @@ func auto_attack():
 	tw.tween_property(sprite, "scale", Vector2(dir_sign * SPRITE_SCALE, SPRITE_SCALE), 0.12)
 
 	AudioManager.play_sfx("swing", global_position)
+	_flash_attack_tex()
 	attack_combo_counter += 1
 
 	# 统一普攻：每次 0.5 伤害（与玩家一致）
@@ -657,3 +662,43 @@ func increase_max_hp(amount: float):
 
 func get_team() -> int:
 	return team
+
+# ========== 贴图管理（匹配玩家逻辑）==========
+
+func _flash_attack_tex():
+	var tex = SASUKE_ATTACK_TEX if not is_senju else NARUTO_ATTACK_TEX
+	var idle = SASUKE_TEX if not is_senju else NARUTO_TEX
+	sprite.texture = tex
+	_flash_clone_attack(0.15)
+	await get_tree().create_timer(0.15).timeout
+	if is_instance_valid(self):
+		sprite.texture = idle
+
+func _flash_special_tex(tex: Texture2D, scale_val: float, duration: float):
+	var idle = SASUKE_TEX if not is_senju else NARUTO_TEX
+	sprite.texture = tex
+	sprite.scale = Vector2(sign(sprite.scale.x) * scale_val, scale_val)
+	_flash_clone_special(tex, Vector2(sign(sprite.scale.x) * scale_val, scale_val), duration)
+	await get_tree().create_timer(duration).timeout
+	if is_instance_valid(self):
+		sprite.texture = idle
+		sprite.scale = Vector2(sign(sprite.scale.x) * SPRITE_SCALE, SPRITE_SCALE)
+
+func _flash_clone_attack(duration: float):
+	if not has_meta("has_clones") or not get_meta("has_clones"):
+		return
+	var tex = SASUKE_ATTACK_TEX if not is_senju else NARUTO_ATTACK_TEX
+	var clones = get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == self and c.has_method("flash_attack"):
+			c.flash_attack(tex, duration)
+			return
+
+func _flash_clone_special(tex: Texture2D, scale_val: Vector2, duration: float):
+	if not has_meta("has_clones") or not get_meta("has_clones"):
+		return
+	var clones = get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == self and c.has_method("flash_special"):
+			c.flash_special(tex, scale_val, duration)
+			return

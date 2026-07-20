@@ -7,6 +7,7 @@ var is_boss_camp := false  # 中央营地是否为Boss
 var spawn_count := 1
 var monster_scene = preload("res://Scenes/Monster.tscn")
 var respawn_timer := 40.0  # 40秒刷新
+var respawn_count := 0  # 累计重生次数（血量递增）
 
 var _monsters := []
 var _timer: Timer
@@ -46,6 +47,8 @@ func _ready():
     spawn_monsters()
 
 func spawn_monsters():
+    respawn_count += 1
+    var hp_mult = pow(2.0, respawn_count - 1)  # 1, 2, 4, 8...
     for i in range(spawn_count):
         var monster = monster_scene.instantiate()
         var spawn_pos = global_position + Vector2(randf_range(-60, 60), randf_range(-60, 60))
@@ -54,6 +57,7 @@ func spawn_monsters():
         spawn_pos.y = clamp(spawn_pos.y, 60, 1440)
         monster.global_position = spawn_pos
         monster.is_boss = is_boss_camp
+        monster.hp_multiplier = hp_mult
         monster.home_position = monster.global_position
         add_child(monster)
         _monsters.append(monster)

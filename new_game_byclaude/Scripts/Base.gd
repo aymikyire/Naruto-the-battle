@@ -11,6 +11,8 @@ var current_hp := max_hp
 var team := TEAM_UCHIHA  # 由 Main 场景设置
 var _heal_timer := 0.0
 const HEAL_RATE := 2.0  # 每秒回复2格
+var _hp_increase_timer := 0.0
+const HP_INCREASE_INTERVAL := 60.0  # 每分钟增加5点最大生命值
 var _friendly_bodies := []  # 在治疗范围内的友方单位
 
 @onready var health_bar := $HealthBar
@@ -32,6 +34,14 @@ func _process(delta):
         for body in _friendly_bodies:
             if is_instance_valid(body) and body.has_method("heal"):
                 body.heal(HEAL_RATE)
+
+    # 每60秒增加5点最大生命值
+    _hp_increase_timer += delta
+    if _hp_increase_timer >= HP_INCREASE_INTERVAL:
+        _hp_increase_timer -= HP_INCREASE_INTERVAL
+        max_hp += 5.0
+        current_hp += 5.0
+        _update_health_text()
 
 func _on_heal_body_entered(body):
     if body.has_method("get_team") and body.get_team() == team:

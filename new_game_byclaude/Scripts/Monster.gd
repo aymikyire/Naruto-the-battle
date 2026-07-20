@@ -9,6 +9,7 @@ const NORMAL_TEX := preload("res://Assets/怪物.webp")
 var max_hp := 6.0
 var current_hp := max_hp
 var is_boss := false  # 是否是中央Boss
+var hp_multiplier := 1.0  # 血量倍率（每次重生翻倍）
 
 var speed := 60.0
 var aggro_range := 200.0
@@ -38,6 +39,7 @@ func _ready():
         max_hp = 6.0
         sprite.texture = NORMAL_TEX
         sprite.scale = Vector2(0.16, 0.16)
+    max_hp *= hp_multiplier
     current_hp = max_hp
     home_position = global_position
     _update_health_text()
@@ -133,8 +135,8 @@ func take_damage(amount: float, attacker = null):
 func die():
     # 掉落技能并通知营地
     var camp = get_parent()
+    AudioManager.play_sfx("death", global_position)
     if camp and camp.has_method("on_monster_died"):
-        AudioManager.play_sfx("death", global_position)
-    camp.on_monster_died(self, last_attacker)
+        camp.on_monster_died(self, last_attacker)
 
     queue_free()
