@@ -11,6 +11,7 @@ const BUS_SFX := "SFX"
 # ---------- 预加载音频资源 ----------
 const SFX_SWING      := preload("res://music/swing.mp3")
 const SFX_WHOOSH     := preload("res://music/whoosh.mp3")
+const SFX_HEAVY_HIT  := preload("res://music/heavy_hit.wav")
 const SFX_SHOOT      := preload("res://music/shoot.wav")
 const SFX_RASENGAN   := preload("res://music/rasengan.mp3")
 const SFX_HURT       := preload("res://music/hurt.ogg")
@@ -53,6 +54,7 @@ func _build_sound_library():
 	# --- 有真实音频文件 ---
 	_sounds["swing"]    = SFX_SWING      # 普通攻击音效
 	_sounds["whoosh"]   = SFX_WHOOSH     # 佐助特殊普攻效果(冲刺)
+	_sounds["heavy_hit"] = SFX_HEAVY_HIT # 鸣人重击音效(特殊攻击第3下)
 	_sounds["shoot"]    = SFX_SHOOT      # 火球术音效后1s
 	_sounds["rasengan"] = SFX_RASENGAN   # 螺旋丸音效
 	_sounds["hurt"]     = SFX_HURT       # 受伤音效

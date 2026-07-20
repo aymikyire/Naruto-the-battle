@@ -61,6 +61,17 @@ func absorb_damage(amount: float) -> float:
 
 	return amount - absorbed
 
+# 临时切换为特殊攻击贴图，duration秒后恢复
+func flash_special(texture: Texture2D, scale: Vector2, duration: float):
+	var prev_tex = _sprite.texture
+	var prev_scale = _sprite.scale
+	_sprite.texture = texture
+	_sprite.scale = scale
+	await get_tree().create_timer(duration).timeout
+	if is_instance_valid(self):
+		_sprite.texture = prev_tex
+		_sprite.scale = prev_scale
+
 func disappear():
 	AudioManager.play_sfx("poof", global_position)
 	if caster and is_instance_valid(caster):

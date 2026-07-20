@@ -29,6 +29,10 @@ var is_uchiha := true  # false = 千手风格（第3下击退）
 # 角色贴图
 const SASUKE_TEX := preload("res://Assets/player_sasuke.png")
 const NARUTO_TEX := preload("res://Assets/player_naruto.png")
+const SASUKE_SPECIAL_TEX := preload("res://Assets/sasuke_special_attack.png")
+const NARUTO_SPECIAL_TEX := preload("res://Assets/naruto_special_attack.png")
+const SASUKE_SPECIAL_SCALE := SPRITE_SCALE  # 佐助特殊攻击贴图缩放（1024x1024）
+const NARUTO_SPECIAL_SCALE := SPRITE_SCALE  # 鸣人特殊攻击贴图缩放（1024x1024）
 
 # 技能系统
 var skill_slots := [null, null, null]  # 3个技能槽
@@ -214,29 +218,50 @@ func do_attack_3_senju():
 	attack_timer = attack_combo_window
 	if character_visual:
 		character_visual.trigger_attack()
-	AudioManager.play_sfx("swing", global_position)
+	AudioManager.play_sfx("heavy_hit", global_position)
+	# 切换到鸣人重击贴图
+	var _prev_tex = sprite.texture
+	sprite.texture = NARUTO_SPECIAL_TEX
+	sprite.scale = Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE)
+	_flash_clone_special(NARUTO_SPECIAL_TEX, Vector2(_facing * NARUTO_SPECIAL_SCALE, NARUTO_SPECIAL_SCALE), 0.2)
 	deal_damage_in_front(0.5, true)
+	# 0.2秒后恢复
+	await get_tree().create_timer(0.2).timeout
+	if is_instance_valid(self):
+		sprite.texture = _prev_tex
+		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
 
 func do_dash():
 	attack_state = AttackState.DASH
 	is_dashing = true
 	AudioManager.play_sfx("whoosh", global_position)
 	dash_direction = Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
-	# 冲刺攻击特效（保持朝向）
-	sprite.scale = Vector2(_facing * SPRITE_SCALE * 1.3, SPRITE_SCALE * 1.3)
-	await get_tree().create_timer(0.1).timeout
-	if is_instance_valid(self):
-		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
-
-	# 冲刺无敌帧
-	set_collision_layer_value(1, false)  # 临时无敌
-
-	# 0.3秒后结束冲刺
+	# 切换到佐助突进贴图
+	var _prev_tex = sprite.texture
+	sprite.texture = SASUKE_SPECIAL_TEX
+	sprite.scale = Vector2(_facing * SASUKE_SPECIAL_SCALE, SASUKE_SPECIAL_SCALE)
+	_flash_clone_special(SASUKE_SPECIAL_TEX, Vector2(_facing * SASUKE_SPECIAL_SCALE, SASUKE_SPECIAL_SCALE), 0.3)
+	# 0.3秒后恢复
 	await get_tree().create_timer(0.3).timeout
-
+	if is_instance_valid(self):
+		sprite.texture = _prev_tex
+		sprite.scale = Vector2(_facing * SPRITE_SCALE, SPRITE_SCALE)
+	# 冲刺无敌帧
+	set_collision_layer_value(1, false)
+	await get_tree().create_timer(0.1).timeout
 	is_dashing = false
 	set_collision_layer_value(1, true)
 	attack_state = AttackState.IDLE
+
+# 通知分身切换为特殊攻击贴图
+func _flash_clone_special(tex: Texture2D, scale_val: Vector2, duration: float):
+	if not has_meta("has_clones") or not get_meta("has_clones"):
+		return
+	var clones = get_tree().get_nodes_in_group("shadow_clones")
+	for c in clones:
+		if is_instance_valid(c) and c.caster == self and c.has_method("flash_special"):
+			c.flash_special(tex, scale_val, duration)
+			return
 
 func deal_damage_in_front(damage: float, apply_knockback: bool = false):
 	var dir := Vector2.RIGHT if _facing >= 0 else Vector2.LEFT
